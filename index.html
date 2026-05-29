@@ -2457,6 +2457,13 @@ function genDoc(tipo){
       <li style="margin-bottom:5pt;text-align:justify;">Que es su libre voluntad arrendar el inmueble ubicado en ${dir}</li>
       <li style="margin-bottom:5pt;text-align:justify;">Que el destino que dará al inmueble será exclusivamente para uso habitacional lícito, para habitar con familiares directos, haciéndose responsable directamente de las personas que habiten o entren al inmueble por autorización de "LA ARRENDATARIA"</li>
     </ul>
+    ${c.obl?`<p style="margin:8pt 0 6pt;font-size:12pt;font-family:Arial;font-weight:bold;">III.- DECLARACIONES DE "EL OBLIGADO SOLIDARIO"</p>
+    ${S}Declara ${B}${c.obl.toUpperCase()}${Be}, quien para efectos de este contrato será denominado ${B}"EL OBLIGADO SOLIDARIO"${Be}:${Pe}
+    <ul style="margin:0 0 8pt;padding-left:20pt;font-size:12pt;font-family:Arial;line-height:1.15;">
+      <li style="margin-bottom:5pt;text-align:justify;">Que conoce íntegramente el contenido y alcances del presente contrato de arrendamiento, y que de manera libre y voluntaria acepta constituirse como obligado solidario de ${B}"LA ARRENDATARIA"${Be} en el cumplimiento de todas y cada una de las obligaciones derivadas del mismo.</li>
+      <li style="margin-bottom:5pt;text-align:justify;">Que responderá solidariamente con su patrimonio en caso de incumplimiento de cualquiera de las obligaciones a cargo de ${B}"LA ARRENDATARIA"${Be}, incluyendo de manera enunciativa mas no limitativa, el pago de rentas, depósitos, penalizaciones, daños al inmueble y cualquier otra cantidad que se adeude con motivo del presente contrato.</li>
+      <li style="margin-bottom:5pt;text-align:justify;">Que tiene plena capacidad legal y económica para asumir las obligaciones derivadas de esta garantía solidaria, sin limitación alguna.</li>
+    </ul>`:''}
     ${S}<em>Hechas las declaraciones anteriores, las partes sujetan el presente contrato a las siguientes:</em>${Pe}
 
     \u003C!-- CLÁUSULAS --\u003E
@@ -2565,6 +2572,20 @@ function genDoc(tipo){
         </td>
       </tr>
     </table>
+
+    ${c.obl?`<div style="text-align:center;margin:16pt 0 8pt;"><strong style="font-size:13pt;">EL OBLIGADO SOLIDARIO</strong></div>
+    <table style="width:60%;border-collapse:collapse;font-size:11pt;font-family:Arial;margin:20pt auto;">
+      <tr>
+        <td style="padding:8pt;border:1pt solid #000;text-align:center;vertical-align:bottom;">
+          <div style="height:50pt;"></div>
+          <div style="border-top:1pt solid #000;padding-top:6pt;">
+            <strong>"EL OBLIGADO SOLIDARIO"</strong><br>
+            <strong>${c.obl.toUpperCase()}</strong><br>
+            Nombre y firma
+          </div>
+        </td>
+      </tr>
+    </table>`:''}
 
     \u003C!-- TESTIGOS --\u003E
     <div style="text-align:center;margin:16pt 0 8pt;"><strong style="font-size:13pt;">TESTIGOS</strong></div>
