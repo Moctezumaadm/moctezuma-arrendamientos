@@ -3586,6 +3586,7 @@ function guardarEdicionContrato(e){
     fechaCorte: currentRole==='Administrador' ? document.getElementById('eFechaCorte').value : (C[idx].fechaCorte||''),
   };
   C[idx] = contratoActualizado;
+  if(docSel && docSel.id === id) docSel = contratoActualizado;
   cerrarEditarContrato();
   registrarAuditoria('EDICION', id, contratoActualizado.inq + ' — ' + contratoActualizado.u);
   initDash();  // Recalcular alertas y estadísticas
