@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34d</title>
+<title>Moctezuma — Control de Arrendamientos v34e</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34d · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34e · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -509,6 +509,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <input id="nMant" type="checkbox" style="width:20px;height:20px;cursor:pointer;">
           <label for="nMant" style="font-size:13px;color:#666;cursor:pointer;margin:0;">✓ Cuota de mantenimiento incluida en la renta</label>
         </div>
+        <div style="font-size:11px;color:#999;margin:-12px 0 20px;">Si está marcado, el contrato dirá que el mantenimiento está incluido en la renta; si no, que el inquilino debe pagarlo por separado.</div>
 
         <!-- SECCIÓN: TIPO DE USO -->
         <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">TIPO DE USO DEL INMUEBLE</div>
@@ -672,6 +673,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <input id="eMant" type="checkbox" style="width:20px;height:20px;cursor:pointer;">
           <label for="eMant" style="font-size:13px;color:#666;cursor:pointer;margin:0;">✓ Cuota de mantenimiento incluida en la renta</label>
         </div>
+        <div style="font-size:11px;color:#999;margin:-12px 0 20px;">Si está marcado, el contrato dirá que el mantenimiento está incluido en la renta; si no, que el inquilino debe pagarlo por separado.</div>
 
         <!-- TIPO DE USO -->
         <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">TIPO DE USO DEL INMUEBLE</div>
@@ -837,7 +839,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34d — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34e — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -972,7 +974,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34d · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34e · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1024,7 +1026,7 @@ const hoy=new Date();
 
 const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MES3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-function dias(s){return Math.ceil((new Date(s)-hoy)/86400000);}
+function dias(s){return Math.ceil((parseFecha(s)-hoy)/86400000);}
 function fF(s){if(!s)return'—';s=String(s).slice(0,10);const[y,m,d]=s.split('-');return`${d} ${MES3[+m-1]} ${y}`;}
 function fM(n){return'$'+n.toLocaleString('es-MX');}
 // Normaliza cualquier formato de fecha a 'YYYY-MM-DD' para inputs type=date
@@ -1049,8 +1051,30 @@ function toDateInput(v){
 }
 function getMant(c){
   if(c.mant!==undefined) return c.mant;
-  if(c.nt&&c.nt.includes("incluido")) return true;
+  if(c.nt&&c.nt.toLowerCase().includes("no incluido")) return false;
+  if(c.nt&&c.nt.toLowerCase().includes("incluido")) return true;
   return false;
+}
+// Parsea cualquier fecha como fecha LOCAL (new Date('YYYY-MM-DD') usa UTC y
+// en México retrocede un día, descuadrando vencimientos y contabilidad)
+function parseFecha(v){
+  if(v instanceof Date) return v;
+  const t = toDateInput(v);
+  if(!t) return new Date(NaN);
+  const [y,m,d] = t.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+// Normaliza un contrato cargado desde Sheets (números como texto, fechas con hora, booleanos como 'TRUE')
+function normalizarContrato(c){
+  c.id = Number(c.id);
+  ['r','dep','cpol','dp','gr','mor','pag','adeudoIni'].forEach(k=>{
+    if(c[k]!==undefined && c[k]!==null) c[k] = Number(c[k]) || 0;
+  });
+  c.ini = toDateInput(c.ini);
+  c.fin = toDateInput(c.fin);
+  if(c.fechaCorte) c.fechaCorte = toDateInput(c.fechaCorte);
+  if(typeof c.mant === 'string') c.mant = c.mant.toLowerCase() === 'true';
+  return c;
 }
 
 // ===== ACTUALIZAR CONTADOR DE CONTRATOS =====
@@ -1066,7 +1090,7 @@ function toast(msg,t='info'){
   const ic={success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
   const el=document.createElement('div');
   el.className=`toast ${t}`;
-  el.innerHTML=`<span class="toast-icon">${ic[t]}</span><span class="toast-text">${msg}</span>`;
+  el.innerHTML=`<span class="toast-icon">${ic[t]||'ℹ️'}</span><span class="toast-text">${msg}</span>`;
   document.getElementById('toastC').appendChild(el);
   setTimeout(()=>el.remove(),4000);
 }
@@ -1137,13 +1161,14 @@ function initDash(){
 
 // ===== CONTRATOS TABLE =====
 function renderContratos(data){
-  // Filter select
+  // Filter select (se reconstruye para reflejar altas, bajas y recargas desde Sheets)
   const sel=document.getElementById('filtUbic');
-  if(sel.options.length<=1){
-    [...new Set(C.map(c=>c.ub))].sort().forEach(u=>{
-      const o=document.createElement('option');o.value=u;o.textContent=u;sel.appendChild(o);
-    });
-  }
+  const ubicSel=sel.value;
+  sel.innerHTML='<option value="">Todas las ubicaciones</option>';
+  [...new Set(C.map(c=>c.ub))].sort().forEach(u=>{
+    const o=document.createElement('option');o.value=u;o.textContent=u;sel.appendChild(o);
+  });
+  sel.value=ubicSel;
   document.getElementById('tBody').innerHTML=data.map(c=>{
     const d=dias(c.fin);
     const rc=d<0?'vencido':d<=30?'proximo':'';
@@ -1176,7 +1201,7 @@ function filtrarUbic(v){renderContratos(v?C.filter(c=>c.ub===v):C);}
 function exportCSV(){
   const h=['#','Unidad','Ubicacion','Inquilino','Renta','Inicio','Vencimiento','Poliza','Banco','Cuenta'];
   const rows=C.map(c=>[c.id,c.u,c.ub,c.inq,c.r,c.ini,c.fin,c.pol||'',c.bco,c.cta]);
-  const csv=[h,...rows].map(r=>r.map(x=>`"${x}"`).join(',')).join('\n');
+  const csv=[h,...rows].map(r=>r.map(x=>`"${String(x==null?'':x).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download=`moctezuma_contratos_${hoy.toISOString().slice(0,10)}.csv`;a.click();
   toast('CSV exportado','success');
@@ -1188,7 +1213,7 @@ function abrirModal(id){
   const d=dias(c.fin);
   document.getElementById('modalTit').textContent=`${c.ub} · ${c.u}`;
   document.getElementById('modalBody').innerHTML=`
-    <div style="margin-bottom:14px;">${badgeE(c)} ${c.pol?`<span class="badge badge-teal" style="margin-left:6px;font-size:10px;">${c.pol}</span>`:''} ${c.nt.includes('LOCAL')?'<span class="badge badge-blue" style="margin-left:6px;">🏪 Local Comercial</span>':''}</div>
+    <div style="margin-bottom:14px;">${badgeE(c)} ${c.pol?`<span class="badge badge-teal" style="margin-left:6px;font-size:10px;">${c.pol}</span>`:''} ${(c.nt||'').includes('LOCAL')?'<span class="badge badge-blue" style="margin-left:6px;">🏪 Local Comercial</span>':''}</div>
     <div class="modal-grid">
       <div class="modal-field"><label>Inquilino</label><span>${c.inq}</span></div>
       <div class="modal-field"><label>Unidad</label><span>${c.u}</span></div>
@@ -1262,7 +1287,7 @@ function calcularEstadoCuenta(c, hastaDate){
   hastaDate = hastaDate || new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const adeudoIni = Number(c.adeudoIni) || 0;
   const baseStr = c.fechaCorte || c.ini;
-  const base = baseStr ? new Date(String(baseStr).slice(0,10)) : new Date(c.ini);
+  const base = parseFecha(baseStr);
   const dp = Number(c.dp) || 1;
   const gr = Number(c.gr) || 0;
   const morPct = Number(c.mor) || 0;
@@ -1270,7 +1295,7 @@ function calcularEstadoCuenta(c, hastaDate){
 
   // Pagos del contrato ordenados por fecha
   const pagos = PAGOS.filter(p => Number(p.cid) === c.id)
-    .map(p => ({...p, _f: new Date(String(p.fecha).slice(0,10)), monto: Number(p.monto)||0}))
+    .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
 
   // Construir periodos mensuales
@@ -1588,6 +1613,7 @@ function imprimirEstadoCuenta(id){
   let saldo=0;
   const rows = eventos.map(ev=>{saldo+=ev.cargo-ev.abono;return `<tr><td>${fF(ev.fecha.toISOString().slice(0,10))}</td><td>${ev.concepto}</td><td style="text-align:right;">${ev.cargo?fM(ev.cargo):''}</td><td style="text-align:right;">${ev.abono?fM(ev.abono):''}</td><td style="text-align:right;font-weight:bold;">${fM(saldo)}</td></tr>`;}).join('');
   const w = window.open('','_blank');
+  if(!w){ toast('El navegador bloqueó la ventana de impresión — permite las ventanas emergentes','error'); return; }
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Estado de Cuenta — ${c.inq}</title>
     <style>@page{size:letter;margin:2cm;}body{font-family:Arial,sans-serif;color:#000;font-size:12px;}h1{color:#0F2027;font-size:18px;border-bottom:2px solid #3D7A75;padding-bottom:8px;}table{width:100%;border-collapse:collapse;margin-top:12px;}th{background:#0F2027;color:#7BADA8;padding:8px;text-align:left;font-size:11px;}td{padding:6px 8px;border-bottom:1px solid #ddd;}.tot{margin-top:16px;font-size:14px;}</style></head><body>
     <h1>Estado de Cuenta — Moctezuma Administradora</h1>
@@ -1676,9 +1702,10 @@ function enviar(tipo){
   const msg=document.getElementById('comunMsg').value;
   if(!msg.trim()){toast('Escribe un mensaje primero','warn');return;}
   if(tipo==='whatsapp'){
-    const tel='5566709577';
-    window.open(`https://wa.me/52${tel}?text=${encodeURIComponent(msg)}`,'_blank');
-    toast('Abriendo WhatsApp...','success');
+    // Sin teléfono del inquilino registrado: se abre WhatsApp con el mensaje
+    // listo para que el usuario elija el contacto destinatario
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+    toast(`Abriendo WhatsApp — selecciona el chat de ${comunSel.inq}`,'success');
   }else{
     const asunto=document.getElementById('emailAsunto').value;
     const gmailUrl=`https://mail.google.com/mail/?view=cm&fs=1&authuser=${encodeURIComponent(CUENTA_ENVIO)}&to=${encodeURIComponent(comunSel.em)}&su=${encodeURIComponent(asunto)}&body=${encodeURIComponent(msg)}`;
@@ -1693,10 +1720,12 @@ function copiarMsg(){
 // ===== DOCUMENTOS =====
 let docSel=null;
 function renderDocSelect(){
+  // Se reconstruye para reflejar altas, bajas y recargas desde Sheets
   const sel=document.getElementById('docSelect');
-  if(sel.options.length<=1){
-    C.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.inq} — ${c.ub} ${c.u}`;sel.appendChild(o);});
-  }
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar inquilino —</option>';
+  C.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.inq} — ${c.ub} ${c.u}`;sel.appendChild(o);});
+  sel.value=cur;
 }
 function selDocInq(id){
   docSel=C.find(c=>c.id==id);
@@ -2414,6 +2443,7 @@ function genDoc(tipo){
     ].join('');
     const dir=(c.dir || `${c.ub}, Unidad ${c.u}, ${c.al}, Ciudad de México`);
     const folio=c.pol||'POLARR/___/____';
+    const mantIncl=getMant(c);
     const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
     const B=`<strong>`;const Be=`</strong>`;const Pe=`</p>`;
     html=`<div style="font-family:Arial;font-size:12pt;color:#000;max-width:680px;margin:0 auto;line-height:1.15;">
@@ -2475,25 +2505,27 @@ function genDoc(tipo){
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEGUNDA.- FACULTAD DE ARRENDAMIENTO Y VIGENCIA</p>
     ${S}${B}"LA ARRENDADORA"${Be} actúa con fundamento en las facultades otorgadas por el propietario del inmueble, de conformidad con el Contrato de Arrendamiento Profesional referido en las Declaraciones, por lo que está plenamente facultada para celebrar el presente instrumento. ${B}"LA ARRENDATARIA"${Be} declara conocer esta circunstancia y la acepta expresamente.${Pe}
     ${S}La duración del presente contrato será de ${B}UN AÑO FORZOSO${Be}, con inicio el día ${B}${fLarga(c.ini)}${Be} y conclusión el día ${B}${fLarga(c.fin)}${Be}. Al término del plazo, el contrato no se prorrogará de manera tácita; para su renovación se requerirá la celebración de un nuevo instrumento escrito firmado por ambas partes.${Pe}
-    ${S}${B}"LA ARRENDATARIA"${Be} no podrá dar por terminado el contrato de manera anticipada. En caso de solicitar la terminación anticipada, perderá en favor de ${B}"LA ARRENDADORA"${Be} la totalidad del depósito en garantía, como pena convencional, sin perjuicio de las rentas que queden pendientes hasta el término del plazo forzoso. Para la devolución del inmueble al vencimiento del contrato, ${B}"LA ARRENDATARIA"${Be} deberá notificar su intención de no renovar con al menos 30 días naturales de anticipación; de no hacerlo, contará con 30 días naturales adicionales para la desocupación, durante los cuales seguirá obligada al pago de la renta proporcional. En caso de no dar aviso de su voluntad de renovar el contrato se tiene por consentido tácitamente su voluntad de renovar por otro año el presente contrato, en consecuencia se deberá firmar en la fecha de término de este contrato el convenio de renovación con las actualizaciones de incremento de renta y en su caso el incremento proporcional del costo de la cuota de mantenimiento si se hubiera determinado así por la Asamblea General de Condóminos, en caso de que el inmueble esté sujeto al régimen de propiedad en condominio.${Pe}
+    ${S}${B}"LA ARRENDATARIA"${Be} no podrá dar por terminado el contrato de manera anticipada. En caso de solicitar la terminación anticipada, perderá en favor de ${B}"LA ARRENDADORA"${Be} la totalidad del depósito en garantía, como pena convencional, sin perjuicio de las rentas que queden pendientes hasta el término del plazo forzoso. Para la devolución del inmueble al vencimiento del contrato, ${B}"LA ARRENDATARIA"${Be} deberá notificar su intención de no renovar con al menos 30 días naturales de anticipación; de no hacerlo, contará con 30 días naturales adicionales para la desocupación, durante los cuales seguirá obligada al pago de la renta proporcional. En caso de no dar aviso de su voluntad de renovar el contrato se tiene por consentido tácitamente su voluntad de renovar por otro año el presente contrato, en consecuencia se deberá firmar en la fecha de término de este contrato el convenio de renovación con las actualizaciones de incremento de renta${mantIncl?'':' y en su caso el incremento proporcional del costo de la cuota de mantenimiento si se hubiera determinado así por la Asamblea General de Condóminos, en caso de que el inmueble esté sujeto al régimen de propiedad en condominio'}.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">TERCERA.- CONOCIMIENTO Y RECEPCIÓN DEL INMUEBLE</p>
     ${S}${B}"LA ARRENDATARIA"${Be} declara conocer físicamente el inmueble materia de este contrato, sus medidas, colindancias y estado físico, aceptando recibirlo de conformidad. Se le hace entrega de un juego de llaves del inmueble. El estado detallado del inmueble al momento de la entrega queda asentado en el Acta de Entrega (Anexo A), la cual es firmada por ambas partes y tiene el mismo valor jurídico que este instrumento.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">CUARTA.- OBLIGACIONES DE PAGO DE SERVICIOS</p>
-    ${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble, así como las cuotas de mantenimiento que determine la Asamblea General del Condominio. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}
+    ${mantIncl
+      ?`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble. Las partes hacen constar expresamente que la cuota de mantenimiento del inmueble se encuentra ${B}INCLUIDA${Be} en el precio de la renta pactado en la Cláusula Quinta, por lo que su pago corresponderá a ${B}"LA ARRENDADORA"${Be}, sin que ${B}"LA ARRENDATARIA"${Be} deba realizar erogación adicional alguna por dicho concepto. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`
+      :`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble, así como las cuotas de mantenimiento que determine la Asamblea General del Condominio, las cuales ${B}NO se encuentran incluidas${Be} en el precio de la renta y deberán cubrirse por separado. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`}
     ${(c.tipo||'habitacional')==='comercial'?`${S}Asimismo, ${B}"LA ARRENDATARIA"${Be} será responsable de obtener y mantener vigentes todos los permisos, licencias, autorizaciones y derechos necesarios para el ejercicio de su actividad comercial${c.giro?` (${B}${c.giro}${Be})`:''} en el inmueble arrendado, incluyendo pero no limitado a: licencia de funcionamiento, aviso de apertura, licencia de uso de suelo, permisos de protección civil, y cualesquiera otros que las autoridades federales, estatales o municipales requieran. Los costos, derechos y trámites derivados de dichas gestiones serán cubiertos exclusivamente por ${B}"LA ARRENDATARIA"${Be}, sin responsabilidad alguna para ${B}"LA ARRENDADORA"${Be}.${Pe}`:''}
-    ${S}En caso de que ${B}"LA ARRENDATARIA"${Be} incurra en adeudos por servicios o cuotas condominales que afecten al inmueble, al propietario o a ${B}"LA ARRENDADORA"${Be}, deberá cubrir dichos adeudos de manera inmediata, incluyendo recargos y multas generados. El incumplimiento de esta obligación será causa de rescisión del contrato en los términos de la Cláusula Décima Primera.${Pe}
-    ${S}Para efectos de la renovación del presente contrato por un periodo adicional, será requisito indispensable que ${B}"LA ARRENDATARIA"${Be} acredite encontrarse al corriente en el pago de todos los servicios, cuotas de mantenimiento y demás obligaciones económicas derivadas del uso del inmueble. ${B}"LA ARRENDADORA"${Be} podrá solicitar los comprobantes de pago correspondientes como condición previa a la formalización de la renovación.${Pe}
+    ${S}En caso de que ${B}"LA ARRENDATARIA"${Be} incurra en adeudos por servicios${mantIncl?'':' o cuotas condominales'} que afecten al inmueble, al propietario o a ${B}"LA ARRENDADORA"${Be}, deberá cubrir dichos adeudos de manera inmediata, incluyendo recargos y multas generados. El incumplimiento de esta obligación será causa de rescisión del contrato en los términos de la Cláusula Décima Primera.${Pe}
+    ${S}Para efectos de la renovación del presente contrato por un periodo adicional, será requisito indispensable que ${B}"LA ARRENDATARIA"${Be} acredite encontrarse al corriente en el pago de todos los servicios${mantIncl?'':', cuotas de mantenimiento'} y demás obligaciones económicas derivadas del uso del inmueble. ${B}"LA ARRENDADORA"${Be} podrá solicitar los comprobantes de pago correspondientes como condición previa a la formalización de la renovación.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">QUINTA.- MONTO Y FORMA DE PAGO DE LA RENTA</p>
-    ${S}Las partes acuerdan que el precio mensual por concepto de arrendamiento es de ${B}${mStr(c.r)}${Be} (${B}${nLetras(c.r)} PESOS 00/100 M.N.${Be}), pagaderos a más tardar el día ${B}${diaNum(c.ini)}${Be} de cada mes calendario.${Pe}
-    ${S}El pago deberá realizarse en la fecha pactada mediante depósito o transferencia bancaria${c.bco?` en ${B}${c.bco}${Be}`:''}${c.cta?`, cuenta ${B}${c.cta}${Be}`:''}${c.clabe?`, CLABE interbancaria ${B}${c.clabe}${Be}`:''}${c.tit?`, a nombre de ${B}${c.tit}${Be}`:''}, siendo el comprobante de transferencia el único instrumento válido de pago, salvo que se acuerde otra modalidad por escrito. ${B}"LA ARRENDADORA"${Be}.${Pe}
+    ${S}Las partes acuerdan que el precio mensual por concepto de arrendamiento es de ${B}${mStr(c.r)}${Be} (${B}${nLetras(c.r)} PESOS 00/100 M.N.${Be}), pagaderos a más tardar el día ${B}${diaNum(c.ini)}${Be} de cada mes calendario.${mantIncl?` Dicho precio ${B}incluye la cuota de mantenimiento${Be} del inmueble, por lo que ${B}"LA ARRENDATARIA"${Be} no deberá realizar pago adicional alguno por dicho concepto.`:` Dicho precio ${B}no incluye la cuota de mantenimiento${Be} del inmueble, la cual deberá ser cubierta por ${B}"LA ARRENDATARIA"${Be} de manera adicional e independiente a la renta, conforme a lo establecido en la Cláusula Cuarta.`}${Pe}
+    ${S}El pago deberá realizarse en la fecha pactada mediante depósito o transferencia bancaria${c.bco?` en ${B}${c.bco}${Be}`:''}${c.cta?`, cuenta ${B}${c.cta}${Be}`:''}${c.clabe?`, CLABE interbancaria ${B}${c.clabe}${Be}`:''}${c.tit?`, a nombre de ${B}${c.tit}${Be}`:''}, siendo el comprobante de transferencia el único instrumento válido de pago, salvo que se acuerde otra modalidad por escrito con ${B}"LA ARRENDADORA"${Be}.${Pe}
     ${S}Al momento de la firma del presente contrato, ${B}"LA ARRENDATARIA"${Be} realiza el pago de ${B}${mStr(c.r)}${Be} por concepto de la primera renta correspondiente al primer mes de la fecha de firma de este contrato, entendiéndose por el periodo de 30 días inmediatos después de la firma.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEXTA.- DEPÓSITO EN GARANTÍA</p>
     ${S}Al momento de la firma del presente instrumento, ${B}"LA ARRENDATARIA"${Be} entrega a ${B}"LA ARRENDADORA"${Be} la cantidad de ${B}${mStr(c.dep)}${Be} (${B}${nLetras(c.dep)} PESOS 00/100 M.N.${Be}) por concepto de depósito en garantía, cuya recepción se acredita con el recibo correspondiente que se anexa al presente contrato.${Pe}
-    ${S}Dicho depósito garantiza el cumplimiento de todas las obligaciones de ${B}"LA ARRENDATARIA"${Be} derivadas de este contrato, incluyendo el pago de rentas, servicios, cuotas condominales y reparación de daños al inmueble. En ningún caso podrá ${B}"LA ARRENDATARIA"${Be} imputar el depósito al pago de mensualidades durante la vigencia del contrato.${Pe}
+    ${S}Dicho depósito garantiza el cumplimiento de todas las obligaciones de ${B}"LA ARRENDATARIA"${Be} derivadas de este contrato, incluyendo el pago de rentas, servicios${mantIncl?'':', cuotas condominales'} y reparación de daños al inmueble. En ningún caso podrá ${B}"LA ARRENDATARIA"${Be} imputar el depósito al pago de mensualidades durante la vigencia del contrato.${Pe}
     ${S}Al término del contrato y previa entrega del inmueble, ${B}"LA ARRENDADORA"${Be} levantará un acta de devolución en presencia de ${B}"LA ARRENDATARIA"${Be}. Si no existen daños ni adeudos, el depósito se devolverá íntegramente dentro de los 15 días hábiles siguientes. En caso de daños o adeudos, se descontarán del depósito los costos de reparación debidamente cotizados, devolviéndose el remanente dentro del mismo plazo.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SÉPTIMA.- PENALIZACIÓN POR MORA</p>
@@ -2527,7 +2559,7 @@ function genDoc(tipo){
     <ul style="margin:0 0 8pt;padding-left:20pt;font-size:12pt;font-family:Arial;line-height:1.15;">
       <li style="margin-bottom:5pt;text-align:justify;">La falta de pago de DOS mensualidades durante la vigencia del contrato.</li>
       <li style="margin-bottom:5pt;text-align:justify;">El subarrendamiento o cesión de derechos del inmueble sin autorización escrita de "LA ARRENDADORA".</li>
-      <li style="margin-bottom:5pt;text-align:justify;">El uso del inmueble para fines distintos al habitacional, o para actividades ilícitas de cualquier índole.</li>
+      <li style="margin-bottom:5pt;text-align:justify;">El uso del inmueble para fines distintos al uso ${(c.tipo||'habitacional')} pactado, o para actividades ilícitas de cualquier índole.</li>
       <li style="margin-bottom:5pt;text-align:justify;">La realización de obras o modificaciones sin autorización previa y escrita de "LA ARRENDADORA".</li>
       <li style="margin-bottom:5pt;text-align:justify;">Las faltas graves y reiteradas al Reglamento Interno del conjunto condominal o a los acuerdos de la Asamblea General de Condóminos.</li>
       <li style="margin-bottom:5pt;text-align:justify;">El incumplimiento de la Cláusula Décima (Licitud de Uso y Extinción de Dominio).</li>
@@ -2677,7 +2709,7 @@ function genDoc(tipo){
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">MONTO DE LA RENTA</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${mStrP(c.r)} (${nLetrasP(c.r)} PESOS 00/100 M.N.)</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">DEPÓSITO EN GARANTÍA</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${mStrP(c.dep||c.r)}</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">VIGENCIA DE LA PÓLIZA</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${fLargaP(c.ini)} al ${fLargaP(c.fin)}</td></tr>
-      <tr><td style="padding:6pt 8pt;border:1pt solid #0F2027;background:#0F2027;color:#7BADA8;font-weight:bold;">COSTO DE LA PÓLIZA</td><td style="padding:6pt 8pt;border:1pt solid #0F2027;font-weight:bold;">$4,000.00 (Cuatro mil pesos 00/100 M.N.)</td></tr>
+      <tr><td style="padding:6pt 8pt;border:1pt solid #0F2027;background:#0F2027;color:#7BADA8;font-weight:bold;">COSTO DE LA PÓLIZA</td><td style="padding:6pt 8pt;border:1pt solid #0F2027;font-weight:bold;">${mStrP(c.cpol||4000)} (${nLetrasP(c.cpol||4000)} PESOS 00/100 M.N.)</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#0F2027;color:#7BADA8;font-weight:bold;">FECHA DE EMISIÓN</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${fLargaP(c.ini)}</td></tr>
     </table>
 
@@ -2703,7 +2735,7 @@ function genDoc(tipo){
     ${SP}${BP}I.${BPe} ${BP}Objeto del contrato.${BPe} El objeto del presente contrato es la contratación de servicios jurídicos a futuro en materia de arrendamiento inmobiliario, en favor del arrendador del contrato principal de arrendamiento, para garantizar que dicho contrato sea cumplido en sus términos por el arrendatario. En caso de incumplimiento de la contraprestación económica a la que se obliga el arrendatario, ${BP}ADMINISTRADORA MOCTEZUMA${BPe} se obliga a negociar extrajudicialmente el cumplimiento o la recuperación del inmueble, bajo los términos establecidos en las cláusulas que rigen este contrato.${PPe}
     ${SP}${BP}II.${BPe} Declara el prestador de servicios ${BP}Lic. Ángel Alberto Flores Moctezuma${BPe} que se encuentra legalmente facultado para la celebración del presente contrato, cuenta con Cédula Profesional número 9930953 expedida por la Dirección General de Profesiones, con efectos de patente para el ejercicio de la abogacía, y que dispone de un despacho de asuntos jurídicos para atender el objeto del contrato. Para efectos del presente instrumento, el prestador del servicio será denominado ${BP}"ADMINISTRADORA MOCTEZUMA"${BPe}.${PPe}
     ${SP}${BP}III.${BPe} Declara el arrendador que se obliga a presentar a ${BP}ADMINISTRADORA MOCTEZUMA${BPe} la documentación necesaria para la iniciación de los trámites y/o procedimientos jurisdiccionales ante los tribunales, incluyendo: el contrato de arrendamiento original, el convenio de desocupación por incumplimiento (en su caso), el contrato de fianza, los recibos oficiales expedidos a favor del arrendatario y cualquier otro documento que pudiere ser necesario. En caso de que el arrendador no presente la documentación en un término de diez días hábiles a partir de que se genere el incumplimiento, ${BP}ADMINISTRADORA MOCTEZUMA${BPe} no será responsable de las obligaciones nacidas del presente contrato.${PPe}
-    ${SP}${BP}IV.${BPe} ${BP}EL PRECIO.${BPe} — El pago por los servicios ofrecidos en el presente documento es de ${BP}$4,000.00 (Cuatro mil pesos 00/100 M.N.)${BPe}${PPe}
+    ${SP}${BP}IV.${BPe} ${BP}EL PRECIO.${BPe} — El pago por los servicios ofrecidos en el presente documento es de ${BP}${mStrP(c.cpol||4000)} (${nLetrasP(c.cpol||4000)} PESOS 00/100 M.N.)${BPe}${PPe}
 
     ${secP('CLÁUSULAS')}
 
@@ -3172,8 +3204,21 @@ function genDoc(tipo){
     const mStrN=v=>'$'+v.toLocaleString('es-MX')+'.00';
     const dirN=(c.dir||`${c.ub}, ${c.u}, ${c.al}, Ciudad de México`);
     const polNum=c.pol||'—';
+    function nLetrasN(n){
+      const u=['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+      const d=['','DIEZ','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+      const ce=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+      if(n===0)return'CERO';if(n===100)return'CIEN';if(n===1000)return'MIL';
+      let r='';
+      if(n>=1000){const m2=Math.floor(n/1000);r+=(m2===1?'MIL':nLetrasN(m2)+' MIL')+' ';n=n%1000;}
+      if(n>=100){r+=ce[Math.floor(n/100)]+' ';n=n%100;}
+      if(n>0){if(n<20)r+=u[n];else{r+=d[Math.floor(n/10)];if(n%10>0)r+=' Y '+u[n%10];}}
+      return r.trim();
+    }
+    const hoyISO=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
     const depMonto=c.dep?mStrN(c.dep):mStrN(c.r);
-    const depLetra=c.depLetra||c.rLetra||'';
+    const depLetra=nLetrasN(Math.floor(c.dep||c.r));
+    const rentaLetra=nLetrasN(Math.floor(c.r));
 
     html=HEADER+`
     <div style="font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#000;line-height:1.3;">
@@ -3195,7 +3240,7 @@ function genDoc(tipo){
           </td>
           <td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#F4F6F7;width:50%;vertical-align:top;">
             <div style="font-size:8pt;color:#3D7A75;font-weight:bold;margin-bottom:3pt;">Fecha de la Notificación</div>
-            <div style="font-size:12pt;font-weight:bold;color:#0F2027;">${fLargaN(c.ini)}</div>
+            <div style="font-size:12pt;font-weight:bold;color:#0F2027;">${fLargaN(hoyISO)}</div>
           </td>
         </tr>
         <tr>
@@ -3215,7 +3260,7 @@ function genDoc(tipo){
           </td>
           <td style="padding:6pt 8pt;border:1pt solid #ccc;background:#fff;vertical-align:top;">
             <div style="font-size:8pt;color:#3D7A75;font-weight:bold;margin-bottom:3pt;">Renta Mensual</div>
-            <div style="font-size:11pt;font-weight:bold;color:#0F2027;">${mStrN(c.r)} (${c.rLetra||''} PESOS 00/100 M.N.)</div>
+            <div style="font-size:11pt;font-weight:bold;color:#0F2027;">${mStrN(c.r)} (${rentaLetra} PESOS 00/100 M.N.)</div>
           </td>
         </tr>
       </table>
@@ -3223,7 +3268,7 @@ function genDoc(tipo){
       \u003C!-- Contenido --\u003E
       <div style="font-weight:bold;font-size:11pt;color:#3D7A75;border-bottom:1pt solid #3D7A75;margin-bottom:8pt;padding-bottom:2pt;">CONTENIDO DE LA NOTIFICACIÓN</div>
 
-      <p style="font-size:10pt;margin:0 0 6pt;">Ciudad de México, a ${fLargaN(c.ini)}.</p>
+      <p style="font-size:10pt;margin:0 0 6pt;">Ciudad de México, a ${fLargaN(hoyISO)}.</p>
       <p style="font-size:10pt;margin:0 0 8pt;">Estimado(a) <strong>${c.inq}</strong>:</p>
 
       <p style="font-size:10pt;text-align:justify;line-height:1.6;margin:0 0 8pt;">
@@ -3324,10 +3369,11 @@ function imprimirDocPDF(){
   // Renombrar temporalmente el título para el PDF
   const tipoActual = window._tipoDocActual || 'Documento';
   const inqActual = docSel ? docSel.inq || docSel.u : '';
+  const tituloOriginal = document.title;
   document.title = `Moctezuma — ${tipoActual} — ${inqActual}`;
   imprimirDoc();
   // Restaurar título
-  setTimeout(()=>{ document.title = 'Moctezuma · Control de Arrendamientos'; }, 3000);
+  setTimeout(()=>{ document.title = tituloOriginal; }, 3000);
 }
 
 function compartirDocEmail(){
@@ -3345,7 +3391,8 @@ function compartirDocEmail(){
     acta: 'Acta de Entrega-Recepción',
     pagare: 'Pagarés de Arrendamiento',
     notificacion: 'Notificación de Terminación',
-    recibo: 'Recibo de Pago'
+    recibo: 'Recibo de Pago',
+    recibo_poliza: 'Recibo de Pago de Póliza'
   }[tipo] || tipo;
 
   const asunto = encodeURIComponent(`${tipoLabel} — ${inmueble} — ${nombreInq}`);
@@ -3380,6 +3427,7 @@ abogado.flores.moctezuma@gmail.com`
 function imprimirDoc(){
   const content=document.getElementById('docContent').innerHTML;
   const w=window.open('','_blank');
+  if(!w){ toast('El navegador bloqueó la ventana de impresión — permite las ventanas emergentes','error'); return; }
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Moctezuma — Documento</title><style>@page{size:letter;margin:2cm 2.5cm;}body{font-family:Arial,sans-serif;padding:0;max-width:none;margin:0;color:#000;font-size:12pt;line-height:1.15;}@media print{body{padding:0;}}</style></head><body>${content}</body></html>`);
   w.document.close();setTimeout(()=>w.print(),500);
 }
@@ -3395,7 +3443,10 @@ async function autoCargarSheets(){
     const data = await jsonpFetch(SHEETS_URL + '?action=getAll');
     if(Array.isArray(data) && data.length > 0){
       C.length = 0;
-      data.forEach(c => C.push(c));
+      data.forEach(c => C.push(normalizarContrato(c)));
+      // Reapuntar selecciones a los objetos recién cargados
+      if(docSel) docSel = C.find(x => x.id === docSel.id) || null;
+      if(comunSel) comunSel = C.find(x => x.id === comunSel.id) || null;
       sheetsConectado = true;
       actualizarIndicadorSheets();
       updateContractCount();  // Actualizar badge y contador
@@ -3411,6 +3462,7 @@ async function autoCargarSheets(){
         PAGOS = pagosData;
         const sp = document.getElementById('pagosSync');
         if(sp) sp.textContent = `${PAGOS.length} pagos registrados`;
+        renderPagos();
       }
     } catch(ep){ console.warn('Carga de pagos falló:', ep.message); }
   } catch(e){
@@ -3421,8 +3473,6 @@ async function autoCargarSheets(){
 
 // ===== NUEVO CONTRATO =====
 function abrirNuevoContrato(){
-  // Calcular nuevo ID
-  const newId = Math.max(...C.map(x=>x.id)) + 1;
   document.getElementById('frmNuevo').reset();
   // Fecha inicio por defecto = hoy
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
@@ -3444,7 +3494,7 @@ function cerrarNuevoContrato(){
 
 function guardarNuevoContrato(e){
   e.preventDefault();
-  const newId = Math.max(...C.map(x=>x.id)) + 1;
+  const newId = C.length ? Math.max(...C.map(x=>Number(x.id)||0)) + 1 : 1;
   const nuevo = {
     id:    newId,
     u:     document.getElementById('nU').value.trim(),
@@ -3518,7 +3568,7 @@ function abrirEditarContrato(id){
   document.getElementById('eDp').value    = c.dp  || 5;
   document.getElementById('eGr').value    = c.gr  || 0;
   document.getElementById('eMor').value   = c.mor || 10;
-  document.getElementById('eMant').checked = c.mant || false;
+  document.getElementById('eMant').checked = getMant(c);
   document.getElementById('eTipo').value   = c.tipo || 'habitacional';
   document.getElementById('eGiro').value   = c.giro || '';
   document.getElementById('eGiroWrap').style.display = (c.tipo==='comercial')?'block':'none';
@@ -3701,6 +3751,7 @@ function copiarEmailHtml(){
   }).catch(()=>{
     // Fallback: abrir ventana con el HTML para copiar manualmente
     const win = window.open('','_blank','width=650,height=500');
+    if(!win){ toast('No se pudo copiar ni abrir ventana — permite las ventanas emergentes','error'); return; }
     win.document.write('<html><body style="margin:20px;font-family:Arial;">');
     win.document.write('<p style="color:#3D7A75;font-weight:bold;">Selecciona todo (Ctrl+A) y copia (Ctrl+C), luego pégalo en Gmail:</p>');
     win.document.write(emailHtml);
@@ -3758,23 +3809,27 @@ function actualizarEstadoSheets(){
   }
 }
 
-function jsonpFetch(url, callback){
+let jsonpSeq = 0;
+function jsonpFetch(url){
   return new Promise((resolve, reject) => {
-    const cbName = 'moctezuma_cb_' + Date.now();
+    // Secuencial para evitar colisiones entre peticiones disparadas en el mismo milisegundo
+    const cbName = 'moctezuma_cb_' + Date.now() + '_' + (++jsonpSeq);
     const script = document.createElement('script');
-    const timeout = setTimeout(() => {
+    const limpiar = () => {
       delete window[cbName];
-      document.body.removeChild(script);
+      if(script.parentNode) script.parentNode.removeChild(script);
+    };
+    const timeout = setTimeout(() => {
+      limpiar();
       reject(new Error('Timeout - verifica la URL'));
     }, 10000);
     window[cbName] = function(data){
       clearTimeout(timeout);
-      delete window[cbName];
-      document.body.removeChild(script);
+      limpiar();
       resolve(data);
     };
     script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cbName;
-    script.onerror = () => { clearTimeout(timeout); reject(new Error('Error de red o URL inválida')); };
+    script.onerror = () => { clearTimeout(timeout); limpiar(); reject(new Error('Error de red o URL inválida')); };
     document.body.appendChild(script);
   });
 }
@@ -3831,7 +3886,9 @@ async function cargarDesdeSheets(){
     const data = await jsonpFetch(SHEETS_URL + '?action=getAll');
     if(Array.isArray(data) && data.length > 0){
       C.length = 0;
-      data.forEach(c => C.push(c));
+      data.forEach(c => C.push(normalizarContrato(c)));
+      if(docSel) docSel = C.find(x => x.id === docSel.id) || null;
+      if(comunSel) comunSel = C.find(x => x.id === comunSel.id) || null;
       sheetsConectado = true;
       actualizarIndicadorSheets();
       updateContractCount();  // Actualizar badge y contador
