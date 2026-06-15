@@ -1195,11 +1195,12 @@ function renderContratos(data){
     </tr>`;
   }).join('');
 }
+function normTxt(s){return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
 function filtrarC(q){
-  const terms=(q||'').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const terms=normTxt(q).trim().split(/\s+/).filter(Boolean);
   if(!terms.length)return renderContratos(C);
   renderContratos(C.filter(c=>{
-    const blob=[c.inq,c.ub,c.u,c.al,c.obl,c.pol,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase();
+    const blob=normTxt([c.inq,c.ub,c.u,c.al,c.obl,c.pol,c.dir].join(' '));
     return terms.every(t=>blob.includes(t));
   }));
 }
