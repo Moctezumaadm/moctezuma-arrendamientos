@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34f</title>
+<title>Moctezuma — Control de Arrendamientos v34g</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34f · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34g · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -415,7 +415,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="nCaj" placeholder="Ej: #42" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
           <div style="display:flex;align-items:center;gap:8px;padding-top:20px;">
-            <input id="nEst" type="checkbox" style="width:18px;height:18px;cursor:pointer;">
+            <input id="nEst" type="checkbox" onchange="toggleEstacionamiento('n')" style="width:18px;height:18px;cursor:pointer;">
             <label for="nEst" style="font-size:13px;color:#666;cursor:pointer;margin:0;">🚗 Incluye estacionamiento</label>
           </div>
           <div style="grid-column:1/-1;">
@@ -583,7 +583,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="eCaj" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
           <div style="display:flex;align-items:center;gap:8px;padding-top:20px;">
-            <input id="eEst" type="checkbox" style="width:18px;height:18px;cursor:pointer;">
+            <input id="eEst" type="checkbox" onchange="toggleEstacionamiento('e')" style="width:18px;height:18px;cursor:pointer;">
             <label for="eEst" style="font-size:13px;color:#666;cursor:pointer;margin:0;">🚗 Incluye estacionamiento</label>
           </div>
           <div style="grid-column:1/-1;">
@@ -847,7 +847,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34f — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34g — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -982,7 +982,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34f · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34g · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -3496,8 +3496,19 @@ async function autoCargarSheets(){
 }
 
 // ===== NUEVO CONTRATO =====
+// Activa/desactiva el campo de numero de cajon segun la casilla de estacionamiento
+function toggleEstacionamiento(p){
+  const chk=document.getElementById(p+'Est');
+  const caj=document.getElementById(p+'Caj');
+  if(!chk||!caj)return;
+  caj.disabled=!chk.checked;
+  caj.style.opacity=chk.checked?'1':'.5';
+  caj.placeholder=chk.checked?'Ej: #42':'—';
+  if(!chk.checked)caj.value='';
+}
 function abrirNuevoContrato(){
   document.getElementById('frmNuevo').reset();
+  toggleEstacionamiento('n');
   // Fecha inicio por defecto = hoy
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
   // Fecha fin = 1 año después
@@ -3580,6 +3591,7 @@ function abrirEditarContrato(id){
   document.getElementById('eAl').value    = c.al  || '';
   document.getElementById('eCaj').value   = c.caj || '';
   document.getElementById('eEst').checked = (c.est!==undefined ? !!c.est : !!(c.caj && String(c.caj).trim()));
+  toggleEstacionamiento('e');
   document.getElementById('eDir').value   = c.dir || '';
   document.getElementById('eInq').value   = c.inq || '';
   document.getElementById('eObl').value   = c.obl || '';
