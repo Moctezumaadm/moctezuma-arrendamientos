@@ -1411,7 +1411,7 @@ function renderPagos(){
     const iconos  = {pagado:'🟢', parcial:'🟡', vencido:'🔴', pendiente:'⚪', na:'⚫'};
     const col = colores[em.estado];
 
-    return `<div class="pago-card" data-inq="${[c.inq,c.ub,c.u,c.al,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase()}" data-est="${em.estado}">
+    return `<div class="pago-card" data-inq="${[c.inq,c.ub,c.u,c.al,c.obl,c.pol,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase()}" data-est="${em.estado}">
       <div class="pago-header">
         <div><div class="pago-name">${c.inq}</div><div class="pago-detail">${c.ub} · ${c.u}</div></div>
         <div class="pago-renta">${fM(c.r)}</div>
