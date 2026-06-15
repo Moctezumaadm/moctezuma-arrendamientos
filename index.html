@@ -281,7 +281,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <button class="mes-btn" onclick="irMesActual()" style="font-size:10px;">HOY</button>
   </div>
   <div class="toolbar">
-    <input class="search-box" type="text" placeholder="🔍 Buscar inquilino..." oninput="filtrarPagos(this.value)" style="max-width:260px;">
+    <input class="search-box" type="text" placeholder="🔍 Buscar inquilino, inmueble, unidad..." oninput="filtrarPagos(this.value)" style="max-width:260px;">
     <select class="filter-select" onchange="filtrarEstadoPago(this.value)">
       <option value="">Todos los estados</option>
       <option value="pagado">🟢 Pagado</option>
@@ -1411,7 +1411,7 @@ function renderPagos(){
     const iconos  = {pagado:'🟢', parcial:'🟡', vencido:'🔴', pendiente:'⚪', na:'⚫'};
     const col = colores[em.estado];
 
-    return `<div class="pago-card" data-inq="${c.inq.toLowerCase()}" data-est="${em.estado}">
+    return `<div class="pago-card" data-inq="${[c.inq,c.ub,c.u,c.al,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase()}" data-est="${em.estado}">
       <div class="pago-header">
         <div><div class="pago-name">${c.inq}</div><div class="pago-detail">${c.ub} · ${c.u}</div></div>
         <div class="pago-renta">${fM(c.r)}</div>
@@ -1447,9 +1447,10 @@ function renderPagos(){
 }
 
 function filtrarPagos(q){
-  const t=normTxt(q);
+  const terms=normTxt(q).trim().split(/\s+/).filter(Boolean);
   document.querySelectorAll('.pago-card').forEach(el=>{
-    el.style.display=normTxt(el.dataset.inq).includes(t)?'':'none';
+    const blob=normTxt(el.dataset.inq);
+    el.style.display=terms.every(t=>blob.includes(t))?'':'none';
   });
 }
 function filtrarEstadoPago(v){
