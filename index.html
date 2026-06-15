@@ -1447,8 +1447,9 @@ function renderPagos(){
 }
 
 function filtrarPagos(q){
+  const t=normTxt(q);
   document.querySelectorAll('.pago-card').forEach(el=>{
-    el.style.display=el.dataset.inq.includes(q.toLowerCase())?'':'none';
+    el.style.display=normTxt(el.dataset.inq).includes(t)?'':'none';
   });
 }
 function filtrarEstadoPago(v){
