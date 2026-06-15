@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34g</title>
+<title>Moctezuma — Control de Arrendamientos v34h</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34g · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34h · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -473,6 +473,14 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="nCpol" type="number" min="0" placeholder="0" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
           <div>
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Tipo de garantía</label>
+            <select id="nGarantia" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;">
+              <option value="Póliza de arrendamiento">Póliza de arrendamiento</option>
+              <option value="Fianza">Fianza</option>
+              <option value="Aval con propiedad escriturada">Aval con propiedad escriturada</option>
+            </select>
+          </div>
+          <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Día de pago</label>
             <input id="nDp" type="number" min="1" max="31" placeholder="5" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
@@ -639,6 +647,14 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Costo póliza ($)</label>
             <input id="eCpol" type="number" min="0" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Tipo de garantía</label>
+            <select id="eGarantia" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;">
+              <option value="Póliza de arrendamiento">Póliza de arrendamiento</option>
+              <option value="Fianza">Fianza</option>
+              <option value="Aval con propiedad escriturada">Aval con propiedad escriturada</option>
+            </select>
           </div>
           <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Día de pago</label>
@@ -847,7 +863,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34g — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34h — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -982,7 +998,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34g · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34h · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -2465,6 +2481,16 @@ function genDoc(tipo){
     const mantIncl=getMant(c);
     const numEst=String(c.caj||'').trim();
     const incEst=(c.est!==undefined ? !!c.est : !!numEst);
+    const garTipo = c.garantia || 'Póliza de arrendamiento';
+    // Frase introductoria según el tipo de garantía
+    let garIntro;
+    if(garTipo==='Fianza'){
+      garIntro = `que se garantiza mediante fianza${c.pol?` ${B}${folio}${Be},`:','}`;
+    }else if(garTipo==='Aval con propiedad escriturada'){
+      garIntro = `que se garantiza mediante aval con propiedad escriturada ante notario público,`;
+    }else{
+      garIntro = `que se garantiza mediante la contratación de la póliza de arrendamiento${c.pol?` ${B}${folio}${Be},`:','}`;
+    }
     const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
     const B=`<strong>`;const Be=`</strong>`;const Pe=`</p>`;
     html=`<div style="font-family:Arial;font-size:12pt;color:#000;max-width:680px;margin:0 auto;line-height:1.15;">
@@ -2480,7 +2506,7 @@ function genDoc(tipo){
     <table style="width:100%;border-collapse:collapse;font-size:11pt;font-family:Arial;margin-bottom:10pt;">
       <tr>
         <td style="padding:5pt 8pt;border:1pt solid #000;width:50%;"><strong>Administrado por:</strong><br>Moctezuma Administradora Inteligente</td>
-        <td style="padding:5pt 8pt;border:1pt solid #000;">Garantía del contrato<br>Póliza de arrendamiento</td>
+        <td style="padding:5pt 8pt;border:1pt solid #000;">Garantía del contrato<br>${garTipo}</td>
       </tr>
       <tr>
         <td style="padding:5pt 8pt;border:1pt solid #000;"><strong>Ciudad:</strong><br>Ciudad de México</td>
@@ -2490,7 +2516,7 @@ function genDoc(tipo){
 
     \u003C!-- INTRO --\u003E
     <div style="text-align:center;margin-bottom:6pt;"><strong style="font-size:13pt;">CONTRATO DE ARRENDAMIENTO</strong></div>
-    ${S}En la Ciudad de México, a ${fLarga(c.ini)}, se celebra el presente Contrato de Arrendamiento, que se garantiza mediante la contratación de la póliza de arrendamiento${c.pol?` ${B}${folio}${Be},`:','} con sujeción a las siguientes declaraciones y cláusulas:${Pe}
+    ${S}En la Ciudad de México, a ${fLarga(c.ini)}, se celebra el presente Contrato de Arrendamiento, ${garIntro} con sujeción a las siguientes declaraciones y cláusulas:${Pe}
 
     \u003C!-- DECLARACIONES --\u003E
     <div style="text-align:center;margin:12pt 0 8pt;"><strong style="font-size:13pt;">D E C L A R A C I O N E S</strong></div>
@@ -3541,6 +3567,7 @@ function guardarNuevoContrato(e){
     prop:  document.getElementById('nProp').value.trim(),
     pol:   document.getElementById('nPol').value.trim() || null,
     cpol:  Number(document.getElementById('nCpol').value) || 0,
+    garantia: document.getElementById('nGarantia').value,
     r:     Number(document.getElementById('nR').value),
     dep:   Number(document.getElementById('nDep').value) || 0,
     caj:   document.getElementById('nCaj').value.trim(),
@@ -3603,6 +3630,7 @@ function abrirEditarContrato(id){
   document.getElementById('eDep').value   = c.dep || 0;
   document.getElementById('ePol').value   = c.pol || '';
   document.getElementById('eCpol').value  = c.cpol|| 0;
+  document.getElementById('eGarantia').value = c.garantia || 'Póliza de arrendamiento';
   document.getElementById('eDp').value    = c.dp  || 5;
   document.getElementById('eGr').value    = c.gr  || 0;
   document.getElementById('eMor').value   = c.mor || 10;
@@ -3659,6 +3687,7 @@ function guardarEdicionContrato(e){
     dep:   Number(document.getElementById('eDep').value) || 0,
     pol:   document.getElementById('ePol').value.trim() || null,
     cpol:  Number(document.getElementById('eCpol').value) || 0,
+    garantia: document.getElementById('eGarantia').value,
     dp:    Number(document.getElementById('eDp').value) || 5,
     gr:    Number(document.getElementById('eGr').value) || 0,
     mor:   Number(document.getElementById('eMor').value) || 10,
