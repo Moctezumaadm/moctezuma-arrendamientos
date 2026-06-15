@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34e</title>
+<title>Moctezuma — Control de Arrendamientos v34f</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34e · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34f · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -847,7 +847,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34e — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34f — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -982,7 +982,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34e · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34f · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
