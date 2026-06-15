@@ -1186,7 +1186,14 @@ function renderContratos(data){
     </tr>`;
   }).join('');
 }
-function filtrarC(q){q=q.toLowerCase();renderContratos(C.filter(c=>c.inq.toLowerCase().includes(q)||c.ub.toLowerCase().includes(q)||c.u.toLowerCase().includes(q)||c.al.toLowerCase().includes(q)));}
+function filtrarC(q){
+  const terms=(q||'').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if(!terms.length)return renderContratos(C);
+  renderContratos(C.filter(c=>{
+    const blob=[c.inq,c.ub,c.u,c.al,c.obl,c.pol,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase();
+    return terms.every(t=>blob.includes(t));
+  }));
+}
 function filtrarEstado(v){
   if(!v)return renderContratos(C);
   renderContratos(C.filter(c=>{
