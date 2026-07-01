@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34i</title>
+<title>Moctezuma — Control de Arrendamientos v34j</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34i · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34j · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -865,7 +865,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34i — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34j — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1000,7 +1000,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34i · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34j · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1775,6 +1775,18 @@ function irDoc(id){
   selDocInq(id);
 }
 function genDoc(tipo){
+  try {
+    return _genDoc(tipo);
+  } catch(err){
+    console.error('[genDoc] Error al generar "'+tipo+'":', err);
+    const c=docSel||{};
+    let pista=err.message;
+    if(/toLocaleString/.test(err.message)) pista='falta un dato numérico (revisa Renta, Depósito o Costo de póliza — no deben estar vacíos)';
+    else if(/toUpperCase/.test(err.message)) pista='falta un dato de texto (revisa el nombre del inquilino u obligado solidario)';
+    toast('⚠️ No se pudo generar el '+tipo+' de '+(c.inq||'este inquilino')+': '+pista,'error');
+  }
+}
+function _genDoc(tipo){
   if(!docSel){toast('Selecciona un inquilino primero','warn');return;}
   const c=docSel;
   const hoyStr=`${hoy.getDate()} de ${MES[hoy.getMonth()].toLowerCase()} de ${hoy.getFullYear()}`;
@@ -2484,6 +2496,8 @@ function genDoc(tipo){
     const numEst=String(c.caj||'').trim();
     const incEst=(c.est!==undefined ? !!c.est : !!numEst);
     const garTipo = c.garantia || 'Póliza de arrendamiento';
+    const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
+    const B=`<strong>`;const Be=`</strong>`;const Pe=`</p>`;
     // Frase introductoria según el tipo de garantía
     let garIntro;
     if(garTipo==='Fianza'){
@@ -2495,8 +2509,6 @@ function genDoc(tipo){
     }else{
       garIntro = `que se garantiza mediante la contratación de la póliza de arrendamiento${c.pol?` ${B}${folio}${Be},`:','}`;
     }
-    const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
-    const B=`<strong>`;const Be=`</strong>`;const Pe=`</p>`;
     html=`<div style="font-family:Arial;font-size:12pt;color:#000;max-width:680px;margin:0 auto;line-height:1.15;">
 
     \u003C!-- LOGO --\u003E
