@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34j</title>
+<title>Moctezuma — Control de Arrendamientos v34k</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -192,7 +192,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34j · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34k · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -865,7 +865,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34j — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34k — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1000,7 +1000,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34j · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34k · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1774,47 +1774,7 @@ function irDoc(id){
   document.getElementById('docSelect').value=id;
   selDocInq(id);
 }
-function genDoc(tipo){
-  try {
-    return _genDoc(tipo);
-  } catch(err){
-    console.error('[genDoc] Error al generar "'+tipo+'":', err);
-    const c=docSel||{};
-    let pista=err.message;
-    if(/toLocaleString/.test(err.message)) pista='falta un dato numérico (revisa Renta, Depósito o Costo de póliza — no deben estar vacíos)';
-    else if(/toUpperCase/.test(err.message)) pista='falta un dato de texto (revisa el nombre del inquilino u obligado solidario)';
-    toast('⚠️ No se pudo generar el '+tipo+' de '+(c.inq||'este inquilino')+': '+pista,'error');
-  }
-}
-function _genDoc(tipo){
-  if(!docSel){toast('Selecciona un inquilino primero','warn');return;}
-  const c=docSel;
-  const hoyStr=`${hoy.getDate()} de ${MES[hoy.getMonth()].toLowerCase()} de ${hoy.getFullYear()}`;
-  const HEADER=`<div style="text-align:center;border-bottom:3px solid #0F2027;padding-bottom:16px;margin-bottom:20px;">
-    <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;color:#3D7A75;text-transform:uppercase;">Administradora Inmobiliaria y Legal Moctezuma S.A.S. de C.V.</div>
-    <div style="font-size:10px;color:#7BADA8;margin-top:4px;">Lic. Ángel Alberto Flores Moctezuma | Cédula Prof. 9930953 | Tel: 5566709577 | moctezuma.adm@gmail.com</div>
-  </div>`;
-  let html='';
-  if(tipo==='contrato'){
-    const MESES_ES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    const fLarga=s=>{if(!s)return'___';s=String(s).slice(0,10);const[y,m,d]=s.split('-');return`${parseInt(d)} de ${MESES_ES[parseInt(m)-1]} de ${y}`;};
-    const fMesMAY=s=>{if(!s)return'___';s=String(s).slice(0,10);return MESES_ES[parseInt(s.split('-')[1])-1].toUpperCase();};
-    const fAnio=s=>{if(!s)return'___';return String(s).slice(0,4);};
-    const diaNum=s=>{if(!s)return'___';s=String(s).slice(0,10);return parseInt(s.split('-')[2]);};
-    function nLetras(n){
-      const u=['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
-      const d=['','DIEZ','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
-      const ce=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
-      if(n===0)return'CERO';if(n===100)return'CIEN';if(n===1000)return'MIL';
-      let r='';
-      if(n>=1000000){const m2=Math.floor(n/1000000);r+=(m2===1?'UN MILLÓN':nLetras(m2)+' MILLONES')+' ';n=n%1000000;}
-      if(n>=1000){const m2=Math.floor(n/1000);r+=(m2===1?'MIL':nLetras(m2)+' MIL')+' ';n=n%1000;}
-      if(n>=100){r+=ce[Math.floor(n/100)]+' ';n=n%100;}
-      if(n>0){if(n<20)r+=u[n];else{r+=d[Math.floor(n/10)];if(n%10>0)r+=' Y '+u[n%10];}}
-      return r.trim();
-    }
-    const mStr=n=>'$'+n.toLocaleString('es-MX')+'.00';
-    const logoB64 = [
+const LOGO_B64 = [
     '/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAA',
     'AAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAA',
     'ACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0',
@@ -2490,6 +2450,47 @@ function _genDoc(tipo){
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPet38h/xKZfTN6AGunbDDk7pZVSOQzOi/wAkA7KiWd0Le0zSX9DtAISqlUu4odyAHD3YdjN1Krm7XRfmIMAFV+rf',
     'pO2QAEGsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB/9k='
     ].join('');
+function genDoc(tipo){
+  try {
+    return _genDoc(tipo);
+  } catch(err){
+    console.error('[genDoc] Error al generar "'+tipo+'":', err);
+    const c=docSel||{};
+    let pista=err.message;
+    if(/toLocaleString/.test(err.message)) pista='falta un dato numérico (revisa Renta, Depósito o Costo de póliza — no deben estar vacíos)';
+    else if(/toUpperCase/.test(err.message)) pista='falta un dato de texto (revisa el nombre del inquilino u obligado solidario)';
+    toast('⚠️ No se pudo generar el '+tipo+' de '+(c.inq||'este inquilino')+': '+pista,'error');
+  }
+}
+function _genDoc(tipo){
+  if(!docSel){toast('Selecciona un inquilino primero','warn');return;}
+  const c=docSel;
+  const hoyStr=`${hoy.getDate()} de ${MES[hoy.getMonth()].toLowerCase()} de ${hoy.getFullYear()}`;
+  const HEADER=`<div style="text-align:center;border-bottom:3px solid #0F2027;padding-bottom:16px;margin-bottom:20px;">
+    <div style="font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:3px;color:#3D7A75;text-transform:uppercase;">Administradora Inmobiliaria y Legal Moctezuma S.A.S. de C.V.</div>
+    <div style="font-size:10px;color:#7BADA8;margin-top:4px;">Lic. Ángel Alberto Flores Moctezuma | Cédula Prof. 9930953 | Tel: 5566709577 | moctezuma.adm@gmail.com</div>
+  </div>`;
+  let html='';
+  if(tipo==='contrato'){
+    const MESES_ES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const fLarga=s=>{if(!s)return'___';s=String(s).slice(0,10);const[y,m,d]=s.split('-');return`${parseInt(d)} de ${MESES_ES[parseInt(m)-1]} de ${y}`;};
+    const fMesMAY=s=>{if(!s)return'___';s=String(s).slice(0,10);return MESES_ES[parseInt(s.split('-')[1])-1].toUpperCase();};
+    const fAnio=s=>{if(!s)return'___';return String(s).slice(0,4);};
+    const diaNum=s=>{if(!s)return'___';s=String(s).slice(0,10);return parseInt(s.split('-')[2]);};
+    function nLetras(n){
+      const u=['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE','DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+      const d=['','DIEZ','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+      const ce=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+      if(n===0)return'CERO';if(n===100)return'CIEN';if(n===1000)return'MIL';
+      let r='';
+      if(n>=1000000){const m2=Math.floor(n/1000000);r+=(m2===1?'UN MILLÓN':nLetras(m2)+' MILLONES')+' ';n=n%1000000;}
+      if(n>=1000){const m2=Math.floor(n/1000);r+=(m2===1?'MIL':nLetras(m2)+' MIL')+' ';n=n%1000;}
+      if(n>=100){r+=ce[Math.floor(n/100)]+' ';n=n%100;}
+      if(n>0){if(n<20)r+=u[n];else{r+=d[Math.floor(n/10)];if(n%10>0)r+=' Y '+u[n%10];}}
+      return r.trim();
+    }
+    const mStr=n=>'$'+n.toLocaleString('es-MX')+'.00';
+    const logoB64 = LOGO_B64;
     const dir=(c.dir || `${c.ub}, Unidad ${c.u}, ${c.al}, Ciudad de México`);
     const folio=c.pol||'POLARR/___/____';
     const mantIncl=getMant(c);
@@ -2714,7 +2715,7 @@ function _genDoc(tipo){
     </div>
     </div>`;
   }else if(tipo==='poliza'){
-    const polLogoB64 = logoB64;
+    const polLogoB64 = LOGO_B64;
     const polNum=c.pol||`POLARR/NUEVO/001/${hoy.getFullYear()}`;
     const dir=(c.dir||`${c.ub}, ${c.u}, ${c.al}, Ciudad de México`);
     const MESES_P=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
