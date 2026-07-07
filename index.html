@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34k</title>
+<title>Moctezuma — Control de Arrendamientos v34l</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -99,6 +99,13 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 .modal-section-title{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
 .modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;}
 .pagos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.pagos-groups{display:flex;flex-direction:column;gap:22px;}
+.edificio-group{border:1px solid rgba(123,173,168,.14);border-radius:14px;padding:14px 14px 16px;background:rgba(255,255,255,.015);}
+.edificio-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(123,173,168,.18);}
+.edificio-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--teal);}
+.edificio-count{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:400;color:rgba(255,255,255,.4);margin-left:6px;}
+.edificio-sub{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:rgba(255,255,255,.6);}
+.edificio-sub b{color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;}
 .pago-card{background:rgba(255,255,255,.03);border:1px solid rgba(123,173,168,.15);border-radius:12px;padding:16px;transition:all .2s;}
 .pago-card:hover{border-color:rgba(123,173,168,.4);}
 .pago-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
@@ -192,7 +199,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34k · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34l · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -291,7 +298,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     </select>
     <span id="pagosSync" style="font-size:11px;color:rgba(255,255,255,.4);margin-left:auto;"></span>
   </div>
-  <div class="pagos-grid" id="pagosGrid"></div>
+  <div class="pagos-groups" id="pagosGrid"></div>
 </section>
 
 <!-- COMUNICADOS -->
@@ -864,8 +871,26 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL INFORME MENSUAL POR EDIFICIO -->
+<div id="modalReporte" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;overflow-y:auto;">
+  <div style="background:#fff;max-width:900px;margin:32px auto;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background:#0F2027;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#7BADA8;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:bold;" id="repTitulo">📄 INFORME MENSUAL</span>
+      <button onclick="cerrarReporte()" style="background:none;border:none;color:#7BADA8;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:14px 24px;background:#EEF2F3;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #dde;">
+      <span style="font-size:11px;color:#567;letter-spacing:1px;text-transform:uppercase;">Periodo:</span>
+      <button onclick="cambiarMesReporte(-1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">◀</button>
+      <b id="repMesLabel" style="min-width:130px;text-align:center;color:#0F2027;"></b>
+      <button onclick="cambiarMesReporte(1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">▶</button>
+      <button onclick="imprimirReporte()" style="margin-left:auto;background:#3D7A75;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / PDF</button>
+    </div>
+    <div style="padding:22px 24px;color:#222;" id="repBody"></div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34k — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34l — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1000,7 +1025,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34k · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34l · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1291,8 +1316,49 @@ function closeModal(){document.getElementById('modalOv').classList.remove('open'
 
 // ===== PAGOS / CONTABILIDAD DE RENTAS =====
 let PAGOS = [];          // {cid, periodo, fecha, monto, comprobante, referencia, nota, usuario, timestamp}
+let GASTOS = [];         // {id, ub, u, concepto, monto, fecha, mes:'YYYY-MM', usuario, timestamp}
+try { GASTOS = JSON.parse(localStorage.getItem('moctezuma_gastos') || '[]') || []; } catch(e){ GASTOS = []; }
 let mesSel = '';         // 'YYYY-MM' del periodo seleccionado
 let mesSelDate = null;   // Date del periodo seleccionado
+
+// ── Persistencia de gastos (localStorage + Google Sheets) ──
+function persistGastosLocal(){
+  try { localStorage.setItem('moctezuma_gastos', JSON.stringify(GASTOS)); } catch(e){}
+}
+async function cargarGastos(){
+  if(SHEETS_URL && sheetsConectado){
+    try {
+      const d = await jsonpFetch(SHEETS_URL + '?action=getGastos');
+      if(Array.isArray(d)){ GASTOS = d; persistGastosLocal(); }
+    } catch(e){ console.warn('Carga de gastos falló (usa local):', e.message); }
+  }
+}
+function guardarGasto(g){
+  GASTOS.push(g);
+  persistGastosLocal();
+  registrarAuditoria('GASTO_REGISTRADO', 0, `${g.ub} — ${g.concepto} — ${fM(g.monto)}`);
+  if(SHEETS_URL && sheetsConectado){
+    jsonpFetch(SHEETS_URL + '?action=saveGasto&data=' + encodeURIComponent(JSON.stringify(g)))
+      .catch(err => console.warn('saveGasto Sheets error:', err.message));
+  }
+}
+function eliminarGastoData(id){
+  const idx = GASTOS.findIndex(g => String(g.id) === String(id));
+  if(idx < 0) return null;
+  const g = GASTOS[idx];
+  GASTOS.splice(idx, 1);
+  persistGastosLocal();
+  registrarAuditoria('GASTO_ELIMINADO', 0, `${g.ub} — ${g.concepto} — ${fM(g.monto)}`);
+  if(SHEETS_URL && sheetsConectado){
+    jsonpFetch(SHEETS_URL + '?action=deleteGasto&data=' + encodeURIComponent(JSON.stringify({id:id})) + '&user=' + encodeURIComponent(currentUser))
+      .catch(err => console.warn('deleteGasto Sheets error:', err.message));
+  }
+  return g;
+}
+function gastosDe(ub, mes){
+  return GASTOS.filter(g => g.ub === ub && g.mes === mes)
+    .sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
+}
 
 function initPagos(){
   mesSelDate = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -1314,6 +1380,12 @@ function irMesActual(){
   renderPagos();
 }
 
+// Cuota de mantenimiento INCLUIDA en la renta que aún NO se cobra (por edificio).
+// Se descuenta de la renta mensual mientras esté aquí. TEMPORAL: cuando se firmen
+// los contratos actualizados de Dr Velasco 106 se elimina esta entrada (o se pone
+// en 0) y el sistema empieza a cobrar la cuota automáticamente.
+const MTTO_INCLUIDO = { 'Dr Velasco 106': 300 };
+
 // ── Núcleo de cálculo: estado de cuenta de un contrato ──
 // Genera cargos mensuales de renta desde fechaCorte (o ini), aplica mora
 // ÚNICA POR EVENTO cuando un periodo no se cubrió a tiempo, y aplica los
@@ -1326,14 +1398,19 @@ function calcularEstadoCuenta(c, hastaDate){
   const dp = Number(c.dp) || 1;
   const gr = Number(c.gr) || 0;
   const morPct = Number(c.mor) || 0;
-  const renta = Number(c.r) || 0;
+  // Renta efectiva = renta contractual menos la cuota de mantenimiento aún no aplicada
+  const mttoNoAplicado = MTTO_INCLUIDO[c.ub] || 0;
+  const renta = Math.max(0, (Number(c.r) || 0) - mttoNoAplicado);
 
   // Pagos del contrato ordenados por fecha
   const pagos = PAGOS.filter(p => Number(p.cid) === c.id)
     .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
 
-  // Construir periodos mensuales
+  // Construir periodos mensuales — RENTA ADELANTADA: el cargo que vence el día
+  // `dp` de un mes cubre la OCUPACIÓN del mes SIGUIENTE (el inquilino paga por
+  // adelantado). El conteo de cargos y las fechas de vencimiento no cambian,
+  // solo la etiqueta `periodo` = mes de ocupación.
   const filas = [];
   if(adeudoIni > 0){
     filas.push({periodo:'Saldo inicial', tipo:'inicial', fecha:base, fechaVenc:base, renta:adeudoIni, mora:0});
@@ -1342,10 +1419,11 @@ function calcularEstadoCuenta(c, hastaDate){
   const tope = new Date(hastaDate.getFullYear(), hastaDate.getMonth(), 1);
   while(cur <= tope){
     const y = cur.getFullYear(), m = cur.getMonth();
+    const occ = new Date(y, m + 1, 1); // mes de ocupación (pago adelantado)
     filas.push({
-      periodo: `${y}-${String(m+1).padStart(2,'0')}`,
+      periodo: `${occ.getFullYear()}-${String(occ.getMonth()+1).padStart(2,'0')}`,
       tipo: 'renta',
-      fecha: new Date(y, m, dp),
+      fecha: new Date(y, m, dp),          // fecha de vencimiento del pago
       fechaVenc: new Date(y, m, dp + gr),
       renta: renta,
       mora: 0
@@ -1372,17 +1450,47 @@ function calcularEstadoCuenta(c, hastaDate){
   const totalCargo = totalRenta + totalMora;
   const totalPagado = pagos.reduce((s,p)=>s+p.monto, 0);
 
-  // Aplicación de pagos: PRIMERO toda la renta (oldest-first), luego mora
+  // Aplicación FIFO explícita: se cubre PRIMERO la renta del mes más antiguo y
+  // el excedente cae en cascada al siguiente (parcial o total). La mora se
+  // cubre al final, también del más antiguo al más nuevo.
   let bolsa = totalPagado;
-  const rentaCubierta = Math.min(bolsa, totalRenta);
-  bolsa -= rentaCubierta;
-  const moraCubierta = Math.min(bolsa, totalMora);
+  const hoyD = new Date();
+  filas.forEach(f => {
+    const cov = Math.min(bolsa, f.renta);
+    f.cubierto = cov;
+    f.saldoRentaFila = f.renta - cov;
+    bolsa -= cov;
+    f.estadoPago = f.saldoRentaFila <= 0.01
+      ? 'pagado'
+      : (cov > 0.01 ? 'parcial' : (hoyD > f.fechaVenc ? 'vencido' : 'pendiente'));
+  });
+  filas.forEach(f => {
+    const cov = Math.min(bolsa, f.mora);
+    f.moraCubierta = cov;
+    f.saldoMoraFila = f.mora - cov;
+    bolsa -= cov;
+  });
 
-  const saldoRenta = totalRenta - rentaCubierta;
-  const saldoMora  = totalMora - moraCubierta;
+  const rentaCubierta = filas.reduce((s,f)=>s+(f.cubierto||0), 0);
+  const moraCubierta  = filas.reduce((s,f)=>s+(f.moraCubierta||0), 0);
+  const saldoRenta = filas.reduce((s,f)=>s+(f.saldoRentaFila||0), 0);
+  const saldoMora  = filas.reduce((s,f)=>s+(f.saldoMoraFila||0), 0);
   const saldoTotal = saldoRenta + saldoMora;
 
-  return {filas, pagos, totalRenta, totalMora, totalCargo, totalPagado, saldoRenta, saldoMora, saldoTotal, renta};
+  // Saldo VENCIDO (atraso real): excluye los meses aún por vencer ('pendiente').
+  // saldoVencidoRenta = solo renta (sin mora) — usado en informes que aún no aplican mora.
+  // saldoPorVencer = renta adelantada del/los mes(es) próximo(s) no vencidos.
+  const vencidas = filas.filter(f => f.estadoPago !== 'pendiente');
+  const saldoVencidoRenta = vencidas.reduce((s,f)=>s+(f.saldoRentaFila||0), 0);
+  const saldoVencido  = saldoVencidoRenta + vencidas.reduce((s,f)=>s+(f.saldoMoraFila||0), 0);
+  const saldoPorVencer = filas.filter(f => f.estadoPago === 'pendiente')
+    .reduce((s,f)=>s+(f.saldoRentaFila||0), 0);
+
+  // Primer mes de renta VENCIDO con saldo pendiente (para "atrasado desde")
+  const primerAtraso = filas.find(f => f.tipo!=='inicial' && f.estadoPago!=='pendiente' && f.saldoRentaFila > 0.01)
+    || (filas.find(f => f.tipo==='inicial' && f.saldoRentaFila > 0.01) || null);
+
+  return {filas, pagos, totalRenta, totalMora, totalCargo, totalPagado, rentaCubierta, moraCubierta, saldoRenta, saldoMora, saldoTotal, saldoVencido, saldoVencidoRenta, saldoPorVencer, renta, primerAtraso};
 }
 
 // ── Estado del periodo seleccionado para un contrato ──
@@ -1391,42 +1499,28 @@ function estadoMes(c, periodo){
   const fila = ec.filas.find(f => f.periodo === periodo);
   if(!fila) return {estado:'na', label:'Fuera de contrato', pagadoMes:0, cargoMes:0};
 
-  // Pagos cuya fecha cae dentro del mes seleccionado
-  const [y,m] = periodo.split('-').map(Number);
-  const pagadoMes = ec.pagos
-    .filter(p => p._f.getFullYear()===y && (p._f.getMonth()+1)===m)
-    .reduce((s,p)=>s+p.monto, 0);
-  const cargoMes = fila.renta + fila.mora;
-
-  // Determinar estado
-  const hoyD = new Date();
-  let estado, label;
-  if(pagadoMes >= cargoMes - 0.01 && cargoMes > 0){
-    estado='pagado'; label='Pagado';
-  } else if(pagadoMes > 0){
-    estado='parcial'; label='Parcial';
-  } else if(hoyD > fila.fechaVenc){
-    estado='vencido'; label='Vencido';
-  } else {
-    estado='pendiente'; label='Pendiente';
-  }
-  return {estado, label, pagadoMes, cargoMes, fila};
+  // Cobertura de ESTE mes según la asignación FIFO (no por fecha de pago)
+  const cargoMes  = fila.renta + fila.mora;
+  const pagadoMes = (fila.cubierto || 0) + (fila.moraCubierta || 0);
+  const labels = {pagado:'Pagado', parcial:'Parcial', vencido:'Vencido', pendiente:'Pendiente'};
+  const estado = fila.estadoPago || 'pendiente';
+  return {estado, label: labels[estado] || 'Pendiente', pagadoMes, cargoMes, fila};
 }
 
 function renderPagos(){
   if(!mesSelDate) initPagos();
   let esperado=0, cobrado=0, adeudoTotal=0, moraTotal=0;
 
-  const cards = C.map(c => {
+  const colores = {pagado:'#27AE60', parcial:'#F39C12', vencido:'#E74C3C', pendiente:'rgba(255,255,255,.4)', na:'rgba(255,255,255,.2)'};
+  const iconos  = {pagado:'🟢', parcial:'🟡', vencido:'🔴', pendiente:'⚪', na:'⚫'};
+
+  const cardHTML = (c) => {
     const ec = calcularEstadoCuenta(c);
     const em = estadoMes(c, mesSel);
     esperado += em.cargoMes || 0;
     cobrado  += em.pagadoMes || 0;
     adeudoTotal += ec.saldoTotal;
     moraTotal += ec.saldoMora;
-
-    const colores = {pagado:'#27AE60', parcial:'#F39C12', vencido:'#E74C3C', pendiente:'rgba(255,255,255,.4)', na:'rgba(255,255,255,.2)'};
-    const iconos  = {pagado:'🟢', parcial:'🟡', vencido:'🔴', pendiente:'⚪', na:'⚫'};
     const col = colores[em.estado];
 
     return `<div class="pago-card" data-inq="${[c.inq,c.ub,c.u,c.al,c.obl,c.pol,c.dir].map(s=>String(s==null?'':s)).join(' ').toLowerCase()}" data-est="${em.estado}">
@@ -1439,7 +1533,7 @@ function renderPagos(){
         ${em.estado==='parcial'?`<span style="font-size:10px;color:rgba(255,255,255,.5);">(${fM(em.pagadoMes)} de ${fM(em.cargoMes)})</span>`:''}
         ${em.fila&&em.fila.mora>0?`<span style="font-size:10px;color:var(--danger);">+mora ${fM(em.fila.mora)}</span>`:''}
       </div>
-      <div class="pago-detail" style="margin-bottom:8px;">Vence día ${c.dp}${c.gr?` (+${c.gr}d gracia)`:''}</div>
+      <div class="pago-detail" style="margin-bottom:8px;">Vence día ${c.dp}${c.gr?` (+${c.gr}d gracia)`:''}${ec.primerAtraso&&ec.primerAtraso.tipo!=='inicial'?` · atraso desde ${ec.primerAtraso.periodo}`:''}</div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid rgba(123,173,168,.15);margin-bottom:8px;">
         <span style="font-size:11px;color:rgba(255,255,255,.5);">Adeudo acumulado:</span>
         <span style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:${ec.saldoTotal>0?'var(--danger)':'var(--success)'};">${fM(ec.saldoTotal)}</span>
@@ -1449,9 +1543,36 @@ function renderPagos(){
         <button class="btn-xs teal" style="padding:8px 12px;" onclick="abrirEstadoCuenta(${c.id})">📊 Estado</button>
       </div>
     </div>`;
+  };
+
+  // Agrupar por edificio (ub) con subtotales
+  const grupos = {};
+  C.forEach(c => { (grupos[c.ub] = grupos[c.ub] || []).push(c); });
+  const bloques = Object.keys(grupos).sort((a,b)=>String(a).localeCompare(String(b))).map(ub => {
+    const arr = grupos[ub];
+    let rentaEd=0, atrasoEd=0, alCorriente=0, conAtraso=0;
+    arr.forEach(c => {
+      const ec = calcularEstadoCuenta(c);
+      rentaEd += Number(c.r)||0;
+      atrasoEd += ec.saldoVencidoRenta;
+      if(ec.saldoVencidoRenta > 0.01) conAtraso++; else alCorriente++;
+    });
+    const cards = arr.map(cardHTML).join('');
+    return `<div class="edificio-group" data-ub="${String(ub).toLowerCase()}">
+      <div class="edificio-header">
+        <div class="edificio-title">🏢 ${ub}<span class="edificio-count">${arr.length} depto${arr.length!==1?'s':''}</span></div>
+        <div class="edificio-sub">
+          <span>Renta mensual: <b>${fM(rentaEd)}</b></span>
+          <span>Atraso vencido: <b style="color:${atrasoEd>0.01?'var(--danger)':'var(--success)'};">${fM(atrasoEd)}</b></span>
+          <span>🟢 ${alCorriente} al corriente · 🔴 ${conAtraso} con atraso</span>
+          ${arr.length>1?`<button class="btn-xs teal" style="padding:5px 10px;" onclick="reporteEdificio('${String(ub).replace(/'/g,"\\'")}')">📄 Informe</button>`:''}
+        </div>
+      </div>
+      <div class="pagos-grid">${cards}</div>
+    </div>`;
   }).join('');
 
-  document.getElementById('pagosGrid').innerHTML = cards;
+  document.getElementById('pagosGrid').innerHTML = bloques;
 
   // Resumen global
   const pendiente = Math.max(0, esperado - cobrado);
@@ -1470,10 +1591,19 @@ function filtrarPagos(q){
     const blob=normTxt(el.dataset.inq);
     el.style.display=terms.every(t=>blob.includes(t))?'':'none';
   });
+  ocultarGruposVacios();
 }
 function filtrarEstadoPago(v){
   document.querySelectorAll('.pago-card').forEach(el=>{
     el.style.display=(!v||el.dataset.est===v)?'':'none';
+  });
+  ocultarGruposVacios();
+}
+// Oculta las cabeceras de edificio cuyos deptos quedaron todos filtrados
+function ocultarGruposVacios(){
+  document.querySelectorAll('.edificio-group').forEach(g=>{
+    const visibles=[...g.querySelectorAll('.pago-card')].some(el=>el.style.display!=='none');
+    g.style.display=visibles?'':'none';
   });
 }
 
@@ -1659,6 +1789,148 @@ function imprimirEstadoCuenta(id){
     <div class="tot"><strong>Total cargos:</strong> ${fM(ec.totalCargo)} · <strong>Total pagado:</strong> ${fM(ec.totalPagado)} · <strong>Saldo pendiente:</strong> ${fM(ec.saldoTotal)}</div>
     </body></html>`);
   w.document.close();setTimeout(()=>w.print(),400);
+}
+
+// ===== INFORME MENSUAL POR EDIFICIO =====
+let repUb = '', repMesDate = null;
+
+function reporteEdificio(ub){
+  repUb = ub;
+  repMesDate = mesSelDate ? new Date(mesSelDate.getFullYear(), mesSelDate.getMonth(), 1)
+                          : new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  document.getElementById('modalReporte').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  renderReporte();
+}
+function cerrarReporte(){
+  document.getElementById('modalReporte').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function cambiarMesReporte(delta){
+  repMesDate = new Date(repMesDate.getFullYear(), repMesDate.getMonth()+delta, 1);
+  renderReporte();
+}
+function repMesStr(){ return `${repMesDate.getFullYear()}-${String(repMesDate.getMonth()+1).padStart(2,'0')}`; }
+function repMesLabel(){ return `${MES[repMesDate.getMonth()]} ${repMesDate.getFullYear()}`; }
+
+// Datos del informe (reutilizado por pantalla e impresión)
+function reporteDatos(){
+  const ub = repUb, mes = repMesStr();
+  const contratos = C.filter(c => c.ub === ub).sort((a,b)=> String(a.u).localeCompare(String(b.u)));
+  const idsEd = new Set(contratos.map(c=>c.id));
+  // 1) Pagos recibidos del mes (agrupados por la etiqueta `periodo` del pago)
+  const pagosMes = PAGOS.filter(p => idsEd.has(Number(p.cid)) && String(p.periodo).slice(0,7) === mes)
+    .map(p => { const c = C.find(x=>x.id===Number(p.cid)); return {u:c?c.u:'?', inq:c?c.inq:'?', fecha:p.fecha, monto:Number(p.monto)||0}; })
+    .sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
+  const totalPagos = pagosMes.reduce((s,p)=>s+p.monto, 0);
+  // 2) Saldo por departamento (motor FIFO). El informe usa saldo SIN mora (no se aplica aún).
+  const saldos = contratos.map(c => {
+    const ec = calcularEstadoCuenta(c);
+    return {u:c.u, inq:c.inq, renta:Number(c.r)||0, atraso:ec.saldoVencidoRenta, adeudo:ec.saldoVencidoRenta,
+            desde: ec.primerAtraso ? ec.primerAtraso.periodo : '', alCorriente: ec.saldoVencidoRenta<=0.01};
+  });
+  // 3) Gastos del mes
+  const gastos = gastosDe(ub, mes);
+  const totalGastos = gastos.reduce((s,g)=>s+(Number(g.monto)||0), 0);
+  // 4) Liquidación
+  const liquidacion = totalPagos - totalGastos;
+  const props = [...new Set(contratos.map(c=>c.prop).filter(Boolean))];
+  return {ub, mes, contratos, pagosMes, totalPagos, saldos, gastos, totalGastos, liquidacion, propietario: props.join(', ') || '—'};
+}
+
+function renderReporte(){
+  document.getElementById('repTitulo').textContent = `📄 INFORME MENSUAL — ${repUb}`;
+  document.getElementById('repMesLabel').textContent = repMesLabel();
+  document.getElementById('repBody').innerHTML = reporteBodyHTML(reporteDatos(), true);
+}
+
+function reporteBodyHTML(d, interactive){
+  const th = 'background:#0F2027;color:#7BADA8;padding:8px;text-align:left;font-size:11px;';
+  const S  = 'font-family:Orbitron,Arial,sans-serif;font-size:13px;color:#0F2027;font-weight:bold;border-bottom:2px solid #3D7A75;padding-bottom:4px;margin:22px 0 8px;';
+  const pagosRows = d.pagosMes.length ? d.pagosMes.map(p =>
+    `<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;">${p.u}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;">${p.inq}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;">${fF(p.fecha)}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">${fM(p.monto)}</td></tr>`).join('')
+    : `<tr><td colspan="4" style="text-align:center;color:#999;padding:10px;">Sin pagos registrados en este periodo</td></tr>`;
+  const saldoRows = d.saldos.map(s =>
+    `<tr>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;">${s.u}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;">${s.inq}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">${fM(s.renta)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;">${s.alCorriente
+        ? '<span style="color:#1a8a3b;font-weight:bold;">● Al corriente</span>'
+        : `<span style="color:#c0392b;font-weight:bold;">● Con atraso</span>${s.desde?`<br><span style="font-size:10px;color:#999;">desde ${s.desde}</span>`:''}`}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;color:${s.adeudo>0.01?'#c0392b':'#1a8a3b'};">${fM(s.adeudo)}</td>
+    </tr>`).join('');
+  const gastoRows = d.gastos.length ? d.gastos.map(g =>
+    `<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;">${g.concepto}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;">${g.fecha?fF(g.fecha):''}</td><td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right;">${fM(g.monto)}</td>${interactive?`<td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center;"><button onclick="eliminarGastoReporte('${g.id}')" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:14px;">🗑️</button></td>`:''}</tr>`).join('')
+    : `<tr><td colspan="${interactive?4:3}" style="text-align:center;color:#999;padding:10px;">Sin gastos registrados en este periodo</td></tr>`;
+  const addGasto = interactive ? `
+    <tr style="background:#f7fafa;">
+      <td style="padding:6px 8px;"><input id="repGConcepto" placeholder="Concepto del gasto" style="width:100%;padding:6px;border:1px solid #cbd5db;border-radius:5px;"></td>
+      <td style="padding:6px 8px;"><input id="repGFecha" type="date" value="${d.mes}-01" style="padding:6px;border:1px solid #cbd5db;border-radius:5px;"></td>
+      <td style="padding:6px 8px;"><input id="repGMonto" type="number" step="0.01" placeholder="0.00" style="width:100px;padding:6px;border:1px solid #cbd5db;border-radius:5px;text-align:right;"></td>
+      <td style="padding:6px 8px;text-align:center;"><button onclick="agregarGastoReporte()" style="background:#3D7A75;color:#fff;border:none;border-radius:5px;padding:6px 11px;cursor:pointer;font-weight:bold;">＋</button></td>
+    </tr>` : '';
+
+  return `
+  <div style="font-size:12px;color:#555;margin-bottom:6px;">
+    <b style="font-size:15px;color:#0F2027;">${d.ub}</b><br>
+    Propietario/a: <b>${d.propietario}</b> · Periodo: <b>${MES[repMesDate.getMonth()]} ${repMesDate.getFullYear()}</b><br>
+    Administradora Moctezuma · Emitido: ${fF(new Date().toISOString().slice(0,10))}
+  </div>
+  ${MTTO_INCLUIDO[d.ub] ? `<div style="font-size:11px;color:#8a6d00;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:7px 10px;margin-bottom:6px;">⚠️ No incluye la cuota de mantenimiento de ${fM(MTTO_INCLUIDO[d.ub])}/depto (se aplicará al firmar los contratos actualizados). No se aplica pena moratoria en este informe.</div>` : ''}
+
+  <div style="${S}">1 · Pagos recibidos del mes</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
+    <th style="${th}">Depto</th><th style="${th}">Inquilino</th><th style="${th}">Fecha</th><th style="${th}text-align:right;">Monto</th>
+  </tr></thead><tbody>${pagosRows}</tbody>
+  <tfoot><tr><td colspan="3" style="text-align:right;font-weight:bold;padding:8px;">Total recibido:</td><td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalPagos)}</td></tr></tfoot></table>
+
+  <div style="${S}">2 · Saldo por departamento</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
+    <th style="${th}">Depto</th><th style="${th}">Inquilino</th><th style="${th}text-align:right;">Renta</th><th style="${th}text-align:center;">Estado</th><th style="${th}text-align:right;">Adeudo vencido</th>
+  </tr></thead><tbody>${saldoRows}</tbody></table>
+
+  <div style="${S}">3 · Gastos del mes</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
+    <th style="${th}">Concepto</th><th style="${th}">Fecha</th><th style="${th}text-align:right;">Monto</th>${interactive?`<th style="${th}"></th>`:''}
+  </tr></thead><tbody>${gastoRows}${addGasto}</tbody>
+  <tfoot><tr><td colspan="2" style="text-align:right;font-weight:bold;padding:8px;">Total gastos:</td><td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalGastos)}</td>${interactive?'<td></td>':''}</tr></tfoot></table>
+
+  <div style="${S}">4 · Liquidación a la propietaria</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;max-width:420px;">
+    <tr><td style="padding:6px 8px;">Total pagos recibidos</td><td style="text-align:right;padding:6px 8px;">${fM(d.totalPagos)}</td></tr>
+    <tr><td style="padding:6px 8px;">(−) Total gastos</td><td style="text-align:right;padding:6px 8px;color:#c0392b;">−${fM(d.totalGastos)}</td></tr>
+    <tr style="border-top:2px solid #0F2027;"><td style="padding:8px;font-weight:bold;font-family:Orbitron,Arial;">SALDO A LIQUIDAR</td><td style="text-align:right;padding:8px;font-weight:bold;font-size:15px;color:${d.liquidacion>=0?'#1a8a3b':'#c0392b'};font-family:Orbitron,Arial;">${fM(d.liquidacion)}</td></tr>
+  </table>`;
+}
+
+function agregarGastoReporte(){
+  if(currentRole!=='Administrador'){ toast('Solo el Administrador puede registrar gastos','error'); return; }
+  const concepto = document.getElementById('repGConcepto').value.trim();
+  const monto = Number(document.getElementById('repGMonto').value);
+  const fecha = document.getElementById('repGFecha').value || (repMesStr()+'-01');
+  if(!concepto || !(monto>0)){ toast('Escribe un concepto y un monto válido','warn'); return; }
+  guardarGasto({ id:'g'+Date.now()+Math.floor(Math.random()*1000), ub:repUb, u:'', concepto, monto, fecha, mes:repMesStr(), usuario:currentUser, timestamp:new Date().toISOString() });
+  renderReporte();
+  toast('✅ Gasto registrado','success');
+}
+function eliminarGastoReporte(id){
+  if(currentRole!=='Administrador'){ toast('Solo el Administrador puede eliminar gastos','error'); return; }
+  if(!confirm('¿Eliminar este gasto?')) return;
+  eliminarGastoData(id);
+  renderReporte();
+  toast('🗑️ Gasto eliminado','warn');
+}
+function imprimirReporte(){
+  const d = reporteDatos();
+  const w = window.open('','_blank');
+  if(!w){ toast('El navegador bloqueó la ventana de impresión — permite las ventanas emergentes','error'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe ${d.ub} — ${repMesLabel()}</title>
+    <style>@page{size:letter;margin:1.6cm 2cm;}body{font-family:Arial,sans-serif;color:#000;font-size:12px;}h1{color:#0F2027;font-size:17px;border-bottom:2px solid #3D7A75;padding-bottom:6px;}table{margin-bottom:6px;}</style></head><body>
+    <h1>Informe mensual de rentas — Moctezuma Administradora</h1>
+    ${reporteBodyHTML(d, false)}
+    </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),400);
 }
 
 // ===== COMUNICADOS =====
@@ -3532,6 +3804,8 @@ async function autoCargarSheets(){
         renderPagos();
       }
     } catch(ep){ console.warn('Carga de pagos falló:', ep.message); }
+    // Cargar gastos
+    await cargarGastos();
   } catch(e){
     // Silencioso — si falla la carga automática, continúa con datos locales
     console.warn('Auto-carga desde Sheets falló:', e.message);
