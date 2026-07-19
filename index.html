@@ -547,6 +547,21 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="nGiro" placeholder="Ej: Venta de alimentos, Consultorio..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
         </div>
+
+        <!-- SECCIÓN: TIPO DE INMUEBLE -->
+        <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">TIPO DE INMUEBLE</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px;">
+          <div>
+            <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Clasificación del inmueble</label>
+            <select id="nTipoInmueble" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;">
+              <option value="local_comercial">🏪 Local comercial</option>
+              <option value="departamento_condominio">🏢 Departamento en condominio</option>
+              <option value="casa_independiente">🏠 Casa / inmueble independiente</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#999;margin:-8px 0 16px;">El tipo de inmueble determina qué cláusulas sobre condominio y mantenimiento aparecerán en el contrato.</div>
+
         <div style="margin-bottom:20px;">
           <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Cláusulas Adicionales (texto libre, se insertará en el contrato)</label>
           <textarea id="nClausAdd" rows="3" placeholder="Párrafos adicionales para este contrato específico..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
@@ -724,6 +739,21 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="eGiro" placeholder="Ej: Venta de alimentos, Consultorio..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
         </div>
+
+        <!-- TIPO DE INMUEBLE -->
+        <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">TIPO DE INMUEBLE</div>
+        <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px;">
+          <div>
+            <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Clasificación del inmueble</label>
+            <select id="eTipoInmueble" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;">
+              <option value="local_comercial">🏪 Local comercial</option>
+              <option value="departamento_condominio">🏢 Departamento en condominio</option>
+              <option value="casa_independiente">🏠 Casa / inmueble independiente</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#999;margin:-8px 0 16px;">El tipo de inmueble determina qué cláusulas sobre condominio y mantenimiento aparecerán en el contrato.</div>
+
         <div style="margin-bottom:20px;">
           <label style="font-size:11px;color:#999;display:block;margin-bottom:4px;">Cláusulas Adicionales (texto libre, se insertará en el contrato)</label>
           <textarea id="eClausAdd" rows="3" placeholder="Párrafos adicionales para este contrato específico..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
@@ -2769,6 +2799,8 @@ function _genDoc(tipo){
     const numEst=String(c.caj||'').trim();
     const incEst=(c.est!==undefined ? !!c.est : !!numEst);
     const garTipo = c.garantia || 'Póliza de arrendamiento';
+    const tipoInm = c.tipoInmueble || 'local_comercial';
+    const esIndependiente = tipoInm === 'casa_independiente';
     const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
     const B=`<strong>`;const Be=`</strong>`;const Pe=`</p>`;
     // Frase introductoria según el tipo de garantía
@@ -2839,32 +2871,34 @@ function _genDoc(tipo){
     ${S}${B}"LA ARRENDADORA"${Be} da en arrendamiento a ${B}"LA ARRENDATARIA"${Be}, de manera libre y autónoma, el inmueble ubicado en ${B}${dir}${Be}, mismo que describe sus características, medidas y colindancias en el Acta de Entrega que se agrega como Anexo A del presente instrumento y forma parte integrante del mismo.${Pe}
     ${incEst
       ?`${S}El arrendamiento ${B}incluye el uso de un (1) cajón de estacionamiento${Be}${numEst?` identificado con el ${B}número ${numEst}${Be}`:''}, destinado exclusivamente al resguardo de un vehículo de ${B}"LA ARRENDATARIA"${Be}. Dicho cajón forma parte integrante del inmueble arrendado y su uso se sujeta a las mismas obligaciones y condiciones previstas en el presente contrato. Queda prohibido destinarlo a fines distintos al estacionamiento de vehículos, así como cederlo o subarrendarlo a terceros.${Pe}`
-      :`${S}Las partes hacen constar que el presente arrendamiento ${B}no incluye cajón de estacionamiento${Be}, por lo que ${B}"LA ARRENDATARIA"${Be} no tendrá derecho de uso sobre área alguna destinada a tal fin dentro del inmueble o condominio.${Pe}`}
+      :`${S}Las partes hacen constar que el presente arrendamiento ${B}no incluye cajón de estacionamiento${Be}, por lo que ${B}"LA ARRENDATARIA"${Be} no tendrá derecho de uso sobre área alguna destinada a tal fin dentro del inmueble${esIndependiente?'':' o condominio'}.${Pe}`}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEGUNDA.- FACULTAD DE ARRENDAMIENTO Y VIGENCIA</p>
     ${S}${B}"LA ARRENDADORA"${Be} actúa con fundamento en las facultades otorgadas por el propietario del inmueble, de conformidad con el Contrato de Arrendamiento Profesional referido en las Declaraciones, por lo que está plenamente facultada para celebrar el presente instrumento. ${B}"LA ARRENDATARIA"${Be} declara conocer esta circunstancia y la acepta expresamente.${Pe}
     ${S}La duración del presente contrato será de ${B}UN AÑO FORZOSO${Be}, con inicio el día ${B}${fLarga(c.ini)}${Be} y conclusión el día ${B}${fLarga(c.fin)}${Be}. Al término del plazo, el contrato no se prorrogará de manera tácita; para su renovación se requerirá la celebración de un nuevo instrumento escrito firmado por ambas partes.${Pe}
-    ${S}${B}"LA ARRENDATARIA"${Be} no podrá dar por terminado el contrato de manera anticipada. En caso de solicitar la terminación anticipada, perderá en favor de ${B}"LA ARRENDADORA"${Be} la totalidad del depósito en garantía, como pena convencional, sin perjuicio de las rentas que queden pendientes hasta el término del plazo forzoso. Para la devolución del inmueble al vencimiento del contrato, ${B}"LA ARRENDATARIA"${Be} deberá notificar su intención de no renovar con al menos 30 días naturales de anticipación; de no hacerlo, contará con 30 días naturales adicionales para la desocupación, durante los cuales seguirá obligada al pago de la renta proporcional. En caso de no dar aviso de su voluntad de renovar el contrato se tiene por consentido tácitamente su voluntad de renovar por otro año el presente contrato, en consecuencia se deberá firmar en la fecha de término de este contrato el convenio de renovación con las actualizaciones de incremento de renta${mantIncl?'':' y en su caso el incremento proporcional del costo de la cuota de mantenimiento si se hubiera determinado así por la Asamblea General de Condóminos, en caso de que el inmueble esté sujeto al régimen de propiedad en condominio'}.${Pe}
+    ${S}${B}"LA ARRENDATARIA"${Be} no podrá dar por terminado el contrato de manera anticipada. En caso de solicitar la terminación anticipada, perderá en favor de ${B}"LA ARRENDADORA"${Be} la totalidad del depósito en garantía, como pena convencional, sin perjuicio de las rentas que queden pendientes hasta el término del plazo forzoso. Para la devolución del inmueble al vencimiento del contrato, ${B}"LA ARRENDATARIA"${Be} deberá notificar su intención de no renovar con al menos 30 días naturales de anticipación; de no hacerlo, contará con 30 días naturales adicionales para la desocupación, durante los cuales seguirá obligada al pago de la renta proporcional. En caso de no dar aviso de su voluntad de renovar el contrato se tiene por consentido tácitamente su voluntad de renovar por otro año el presente contrato, en consecuencia se deberá firmar en la fecha de término de este contrato el convenio de renovación con las actualizaciones de incremento de renta${mantIncl?'':(esIndependiente?'':' y en su caso el incremento proporcional del costo de la cuota de mantenimiento si se hubiera determinado así por la Asamblea General de Condóminos, en caso de que el inmueble esté sujeto al régimen de propiedad en condominio')}.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">TERCERA.- CONOCIMIENTO Y RECEPCIÓN DEL INMUEBLE</p>
     ${S}${B}"LA ARRENDATARIA"${Be} declara conocer físicamente el inmueble materia de este contrato, sus medidas, colindancias y estado físico, aceptando recibirlo de conformidad. Se le hace entrega de un juego de llaves del inmueble. El estado detallado del inmueble al momento de la entrega queda asentado en el Acta de Entrega (Anexo A), la cual es firmada por ambas partes y tiene el mismo valor jurídico que este instrumento.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">CUARTA.- OBLIGACIONES DE PAGO DE SERVICIOS</p>
-    ${mantIncl
-      ?`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble. Las partes hacen constar expresamente que la cuota de mantenimiento del inmueble se encuentra ${B}INCLUIDA${Be} en el precio de la renta pactado en la Cláusula Quinta, por lo que su pago corresponderá a ${B}"LA ARRENDADORA"${Be}, sin que ${B}"LA ARRENDATARIA"${Be} deba realizar erogación adicional alguna por dicho concepto. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`
-      :`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble, así como las cuotas de mantenimiento que determine la Asamblea General del Condominio, las cuales ${B}NO se encuentran incluidas${Be} en el precio de la renta y deberán cubrirse por separado. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`}
+    ${esIndependiente
+      ?`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente todos los servicios derivados del uso del inmueble, incluyendo agua, energía eléctrica, gas, teléfono, internet y cualesquiera otros servicios contratados para el inmueble. Asimismo, ${B}"LA ARRENDATARIA"${Be} será responsable directo del mantenimiento, conservación y reparación de todos los servicios e instalaciones del inmueble, tanto mayores como menores, incluyendo sistemas de plomería, electricidad, climatización, calefacción y demás infraestructura del inmueble. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`
+      :mantIncl
+        ?`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble. Las partes hacen constar expresamente que la cuota de mantenimiento del inmueble se encuentra ${B}INCLUIDA${Be} en el precio de la renta pactado en la Cláusula Quinta, por lo que su pago corresponderá a ${B}"LA ARRENDADORA"${Be}, sin que ${B}"LA ARRENDATARIA"${Be} deba realizar erogación adicional alguna por dicho concepto. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`
+        :`${S}${B}"LA ARRENDATARIA"${Be} será responsable de pagar puntualmente los servicios de agua, energía eléctrica y gas derivados del uso del inmueble, así como las cuotas de mantenimiento que determine la Asamblea General del Condominio, las cuales ${B}NO se encuentran incluidas${Be} en el precio de la renta y deberán cubrirse por separado. Se hace constar que a la fecha de la firma del presente contrato no existen adeudos por ninguno de dichos conceptos.${Pe}`}
     ${(c.tipo||'habitacional')==='comercial'?`${S}Asimismo, ${B}"LA ARRENDATARIA"${Be} será responsable de obtener y mantener vigentes todos los permisos, licencias, autorizaciones y derechos necesarios para el ejercicio de su actividad comercial${c.giro?` (${B}${c.giro}${Be})`:''} en el inmueble arrendado, incluyendo pero no limitado a: licencia de funcionamiento, aviso de apertura, licencia de uso de suelo, permisos de protección civil, y cualesquiera otros que las autoridades federales, estatales o municipales requieran. Los costos, derechos y trámites derivados de dichas gestiones serán cubiertos exclusivamente por ${B}"LA ARRENDATARIA"${Be}, sin responsabilidad alguna para ${B}"LA ARRENDADORA"${Be}.${Pe}`:''}
-    ${S}En caso de que ${B}"LA ARRENDATARIA"${Be} incurra en adeudos por servicios${mantIncl?'':' o cuotas condominales'} que afecten al inmueble, al propietario o a ${B}"LA ARRENDADORA"${Be}, deberá cubrir dichos adeudos de manera inmediata, incluyendo recargos y multas generados. El incumplimiento de esta obligación será causa de rescisión del contrato en los términos de la Cláusula Décima Primera.${Pe}
-    ${S}Para efectos de la renovación del presente contrato por un periodo adicional, será requisito indispensable que ${B}"LA ARRENDATARIA"${Be} acredite encontrarse al corriente en el pago de todos los servicios${mantIncl?'':', cuotas de mantenimiento'} y demás obligaciones económicas derivadas del uso del inmueble. ${B}"LA ARRENDADORA"${Be} podrá solicitar los comprobantes de pago correspondientes como condición previa a la formalización de la renovación.${Pe}
+    ${S}En caso de que ${B}"LA ARRENDATARIA"${Be} incurra en adeudos por servicios${esIndependiente?'':(mantIncl?'':' o cuotas condominales')} que afecten al inmueble, al propietario o a ${B}"LA ARRENDADORA"${Be}, deberá cubrir dichos adeudos de manera inmediata, incluyendo recargos y multas generados. El incumplimiento de esta obligación será causa de rescisión del contrato en los términos de la Cláusula Décima Primera.${Pe}
+    ${S}Para efectos de la renovación del presente contrato por un periodo adicional, será requisito indispensable que ${B}"LA ARRENDATARIA"${Be} acredite encontrarse al corriente en el pago de todos los servicios${esIndependiente?'':(mantIncl?'':', cuotas de mantenimiento')} y demás obligaciones económicas derivadas del uso del inmueble. ${B}"LA ARRENDADORA"${Be} podrá solicitar los comprobantes de pago correspondientes como condición previa a la formalización de la renovación.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">QUINTA.- MONTO Y FORMA DE PAGO DE LA RENTA</p>
-    ${S}Las partes acuerdan que el precio mensual por concepto de arrendamiento es de ${B}${mStr(c.r)}${Be} (${B}${nLetras(c.r)} PESOS 00/100 M.N.${Be}), pagaderos a más tardar el día ${B}${diaNum(c.ini)}${Be} de cada mes calendario.${mantIncl?` Dicho precio ${B}incluye la cuota de mantenimiento${Be} del inmueble, por lo que ${B}"LA ARRENDATARIA"${Be} no deberá realizar pago adicional alguno por dicho concepto.`:` Dicho precio ${B}no incluye la cuota de mantenimiento${Be} del inmueble, la cual deberá ser cubierta por ${B}"LA ARRENDATARIA"${Be} de manera adicional e independiente a la renta, conforme a lo establecido en la Cláusula Cuarta.`}${Pe}
+    ${S}Las partes acuerdan que el precio mensual por concepto de arrendamiento es de ${B}${mStr(c.r)}${Be} (${B}${nLetras(c.r)} PESOS 00/100 M.N.${Be}), pagaderos a más tardar el día ${B}${diaNum(c.ini)}${Be} de cada mes calendario.${esIndependiente?'':(mantIncl?` Dicho precio ${B}incluye la cuota de mantenimiento${Be} del inmueble, por lo que ${B}"LA ARRENDATARIA"${Be} no deberá realizar pago adicional alguno por dicho concepto.`:` Dicho precio ${B}no incluye la cuota de mantenimiento${Be} del inmueble, la cual deberá ser cubierta por ${B}"LA ARRENDATARIA"${Be} de manera adicional e independiente a la renta, conforme a lo establecido en la Cláusula Cuarta.`)}${Pe}
     ${S}El pago deberá realizarse en la fecha pactada mediante depósito o transferencia bancaria${c.bco?` en ${B}${c.bco}${Be}`:''}${c.cta?`, cuenta ${B}${c.cta}${Be}`:''}${c.clabe?`, CLABE interbancaria ${B}${c.clabe}${Be}`:''}${c.tit?`, a nombre de ${B}${c.tit}${Be}`:''}, siendo el comprobante de transferencia el único instrumento válido de pago, salvo que se acuerde otra modalidad por escrito con ${B}"LA ARRENDADORA"${Be}.${Pe}
     ${S}Al momento de la firma del presente contrato, ${B}"LA ARRENDATARIA"${Be} realiza el pago de ${B}${mStr(c.r)}${Be} por concepto de la primera renta correspondiente al primer mes de la fecha de firma de este contrato, entendiéndose por el periodo de 30 días inmediatos después de la firma.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEXTA.- DEPÓSITO EN GARANTÍA</p>
     ${S}Al momento de la firma del presente instrumento, ${B}"LA ARRENDATARIA"${Be} entrega a ${B}"LA ARRENDADORA"${Be} la cantidad de ${B}${mStr(c.dep)}${Be} (${B}${nLetras(c.dep)} PESOS 00/100 M.N.${Be}) por concepto de depósito en garantía, cuya recepción se acredita con el recibo correspondiente que se anexa al presente contrato.${Pe}
-    ${S}Dicho depósito garantiza el cumplimiento de todas las obligaciones de ${B}"LA ARRENDATARIA"${Be} derivadas de este contrato, incluyendo el pago de rentas, servicios${mantIncl?'':', cuotas condominales'} y reparación de daños al inmueble. En ningún caso podrá ${B}"LA ARRENDATARIA"${Be} imputar el depósito al pago de mensualidades durante la vigencia del contrato.${Pe}
+    ${S}Dicho depósito garantiza el cumplimiento de todas las obligaciones de ${B}"LA ARRENDATARIA"${Be} derivadas de este contrato, incluyendo el pago de rentas, servicios${esIndependiente?'':(mantIncl?'':', cuotas condominales')} y reparación de daños al inmueble. En ningún caso podrá ${B}"LA ARRENDATARIA"${Be} imputar el depósito al pago de mensualidades durante la vigencia del contrato.${Pe}
     ${S}Al término del contrato y previa entrega del inmueble, ${B}"LA ARRENDADORA"${Be} levantará un acta de devolución en presencia de ${B}"LA ARRENDATARIA"${Be}. Si no existen daños ni adeudos, el depósito se devolverá íntegramente dentro de los 15 días hábiles siguientes. En caso de daños o adeudos, se descontarán del depósito los costos de reparación debidamente cotizados, devolviéndose el remanente dentro del mismo plazo.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SÉPTIMA.- PENALIZACIÓN POR MORA</p>
@@ -2876,10 +2910,12 @@ function _genDoc(tipo){
     ${S}Queda expresamente prohibido a ${B}"LA ARRENDATARIA"${Be}: (a) subarrendar el inmueble total o parcialmente; (b) ceder los derechos derivados de este contrato a favor de tercero alguno; (c) permitir que personas distintas a las señaladas en las Declaraciones habiten el inmueble de manera permanente, sin previa autorización escrita de ${B}"LA ARRENDADORA"${Be}. La violación de cualquiera de estas prohibiciones constituirá causa de rescisión inmediata del contrato, con pérdida del depósito en garantía y sin perjuicio de las acciones legales que correspondan.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">NOVENA.- MANTENIMIENTO, CONSERVACIÓN Y OBRAS</p>
-    ${S}${B}"LA ARRENDATARIA"${Be} se obliga a conservar el inmueble en las mismas condiciones en que le fue entregado, siendo responsable de las reparaciones menores derivadas del uso cotidiano normal (cambio de focos, llaves de agua, chapas, vidrios, etc.). Las reparaciones mayores o de carácter estructural (instalación eléctrica, hidráulica y estructural) serán responsabilidad de ${B}"LA ARRENDADORA"${Be}, previa notificación escrita por parte de ${B}"LA ARRENDATARIA"${Be}, siempre y cuando dichas fallas no sean consecuencia de negligencia, mal uso o falta de mantenimiento atribuible a ${B}"LA ARRENDATARIA"${Be}, lo cual será determinado mediante dictamen del técnico designado por ${B}"LA ARRENDADORA"${Be}.${Pe}
+    ${esIndependiente
+      ?`${S}${B}"LA ARRENDATARIA"${Be} asume responsabilidad integral por el mantenimiento, conservación y reparación de todos los elementos, sistemas e instalaciones del inmueble, incluyendo pero no limitado a: sistemas de plomería, instalación eléctrica, climatización, calefacción, techumbre, pisos, puertas, ventanas, accesorios, cerraduras, y cualesquiera otros sistemas o elementos que componen el inmueble. ${B}"LA ARRENDATARIA"${Be} se obliga a realizar todos los mantenimientos preventivos necesarios y las reparaciones que surjan durante la vigencia del contrato, sin que ${B}"LA ARRENDADORA"${Be} tenga obligación de contribuir a los costos de reparación o mantenimiento, excepto en aquellos casos donde exista defecto oculto o vicio redhibitorio que haya preexistido a la toma de posesión del inmueble.${Pe}`
+      :`${S}${B}"LA ARRENDATARIA"${Be} se obliga a conservar el inmueble en las mismas condiciones en que le fue entregado, siendo responsable de las reparaciones menores derivadas del uso cotidiano normal (cambio de focos, llaves de agua, chapas, vidrios, etc.). Las reparaciones mayores o de carácter estructural (instalación eléctrica, hidráulica y estructural) serán responsabilidad de ${B}"LA ARRENDADORA"${Be}, previa notificación escrita por parte de ${B}"LA ARRENDATARIA"${Be}, siempre y cuando dichas fallas no sean consecuencia de negligencia, mal uso o falta de mantenimiento atribuible a ${B}"LA ARRENDATARIA"${Be}, lo cual será determinado mediante dictamen del técnico designado por ${B}"LA ARRENDADORA"${Be}.${Pe}
     ${S}Tratándose de un contrato de primer arrendamiento, ${B}"LA ARRENDATARIA"${Be} podrá reportar cualquier falla en elementos de uso cotidiano dentro de los primeros ${B}30 (treinta) días naturales${Be} posteriores a la fecha de entrega del inmueble, y ${B}"LA ARRENDADORA"${Be} se obliga a reparar o sustituir dichos elementos para su buen funcionamiento. Transcurrido dicho plazo, será responsabilidad exclusiva de ${B}"LA ARRENDATARIA"${Be} realizar las reparaciones correspondientes, comprometiéndose a devolver el inmueble sin fallas en estos elementos.${Pe}
     ${S}Tratándose de contratos renovados o de prórroga, todas las reparaciones de elementos de uso cotidiano correrán por cuenta exclusiva de ${B}"LA ARRENDATARIA"${Be} desde el inicio de la renovación, al considerarse que el inmueble fue aceptado en las condiciones existentes al momento de la renovación.${Pe}
-    ${S}En caso de que el inmueble se devuelva con fallas en elementos accesorios o de uso cotidiano, los costos de reparación se descontarán del depósito en garantía.${Pe}
+    ${S}En caso de que el inmueble se devuelva con fallas en elementos accesorios o de uso cotidiano, los costos de reparación se descontarán del depósito en garantía.${Pe}`}
     ${S}Queda expresamente prohibido a ${B}"LA ARRENDATARIA"${Be} realizar obras, modificaciones, demoliciones o instalaciones en el inmueble sin autorización escrita previa de ${B}"LA ARRENDADORA"${Be}. Las mejoras o modificaciones realizadas sin autorización quedarán en beneficio del inmueble sin derecho a compensación o indemnización alguna, y ${B}"LA ARRENDADORA"${Be} podrá exigir la restitución del inmueble a su estado original a costa de ${B}"LA ARRENDATARIA"${Be}.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">DÉCIMA.- LICITUD DE USO Y PROTECCIÓN CONTRA EXTINCIÓN DE DOMINIO</p>
@@ -2900,7 +2936,7 @@ function _genDoc(tipo){
       <li style="margin-bottom:5pt;text-align:justify;">El subarrendamiento o cesión de derechos del inmueble sin autorización escrita de "LA ARRENDADORA".</li>
       <li style="margin-bottom:5pt;text-align:justify;">El uso del inmueble para fines distintos al uso ${(c.tipo||'habitacional')} pactado, o para actividades ilícitas de cualquier índole.</li>
       <li style="margin-bottom:5pt;text-align:justify;">La realización de obras o modificaciones sin autorización previa y escrita de "LA ARRENDADORA".</li>
-      <li style="margin-bottom:5pt;text-align:justify;">Las faltas graves y reiteradas al Reglamento Interno del conjunto condominal o a los acuerdos de la Asamblea General de Condóminos.</li>
+      ${esIndependiente?'':`<li style="margin-bottom:5pt;text-align:justify;">Las faltas graves y reiteradas al Reglamento Interno del conjunto condominal o a los acuerdos de la Asamblea General de Condóminos.</li>`}
       <li style="margin-bottom:5pt;text-align:justify;">El incumplimiento de la Cláusula Décima (Licitud de Uso y Extinción de Dominio).</li>
       <li style="margin-bottom:5pt;text-align:justify;">El abandono del inmueble por un período mayor a 30 días naturales sin notificación previa.</li>
       <li style="margin-bottom:5pt;text-align:justify;">El uso o consumo de drogas y estupefacientes dentro del inmueble.</li>
@@ -3877,6 +3913,7 @@ function guardarNuevoContrato(e){
     mant:  document.getElementById('nMant').checked,
     tipo:  document.getElementById('nTipo').value,
     giro:  document.getElementById('nGiro').value.trim(),
+    tipoInmueble: document.getElementById('nTipoInmueble').value,
     clausulas_add: document.getElementById('nClausAdd').value.trim(),
     nt:    document.getElementById('nNt').value.trim()
   };
@@ -3929,6 +3966,7 @@ function abrirEditarContrato(id){
   document.getElementById('eTipo').value   = c.tipo || 'habitacional';
   document.getElementById('eGiro').value   = c.giro || '';
   document.getElementById('eGiroWrap').style.display = (c.tipo==='comercial')?'block':'none';
+  document.getElementById('eTipoInmueble').value = c.tipoInmueble || 'local_comercial';
   document.getElementById('eClausAdd').value = c.clausulas_add || '';
   document.getElementById('eBco').value   = c.bco || '';
   document.getElementById('eCta').value   = c.cta || '';
@@ -3989,6 +4027,7 @@ function guardarEdicionContrato(e){
     mant:  document.getElementById('eMant').checked,
     tipo:  document.getElementById('eTipo').value,
     giro:  document.getElementById('eGiro').value.trim(),
+    tipoInmueble: document.getElementById('eTipoInmueble').value,
     clausulas_add: document.getElementById('eClausAdd').value.trim(),
     nt:    document.getElementById('eNt').value.trim(),
     adeudoIni: currentRole==='Administrador' ? (Number(document.getElementById('eAdeudoIni').value)||0) : (C[idx].adeudoIni||0),
