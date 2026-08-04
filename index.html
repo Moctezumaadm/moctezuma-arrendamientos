@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34o</title>
+<title>Moctezuma — Control de Arrendamientos v34p</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -199,7 +199,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34o · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34p · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -219,6 +219,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
   <button class="nav-tab active" onclick="showSection('dashboard',this)">🏠 Dashboard</button>
   <button class="nav-tab" onclick="showSection('contratos',this)">📋 Contratos <span class="nav-badge" id="nav-badge-contratos">30</span></button>
   <button class="nav-tab" onclick="showSection('pagos',this)">💰 Pagos</button>
+  <button class="nav-tab" onclick="showSection('gastos',this);renderGastos()">💸 Gastos</button>
   <button class="nav-tab" onclick="showSection('comunicados',this)">📨 Comunicados</button>
   <button class="nav-tab" onclick="showSection('documentos',this)">📄 Documentos</button>
 </nav>
@@ -300,6 +301,62 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
   </div>
   <div class="pagos-groups" id="pagosGrid"></div>
 </section>
+
+<!-- GASTOS -->
+<section class="section" id="sec-gastos">
+  <div class="section-title">💸 Gastos por Inmueble</div>
+  <div class="stats-grid" style="margin-bottom:18px;">
+    <div class="stat-card"><div class="stat-label">Gastos del filtro</div><div class="stat-value" id="gs-total">—</div><div class="stat-sub" id="gs-total-sub">—</div></div>
+  </div>
+  <!-- Captura -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(123,173,168,.2);border-radius:10px;padding:16px;margin-bottom:18px;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--teal2);margin-bottom:10px;">Registrar gasto</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px;">
+      <div><label class="g-lbl">Fecha</label><input id="gFecha" type="date" class="g-inp"></div>
+      <div><label class="g-lbl">Inmueble</label><select id="gUb" class="g-inp" onchange="llenarDeptosGasto()"></select></div>
+      <div><label class="g-lbl">Depto (opcional)</label><select id="gCid" class="g-inp"><option value="">— Gasto general —</option></select></div>
+      <div><label class="g-lbl">Categoría</label><select id="gCat" class="g-inp">
+        <option value="mantenimiento">Mantenimiento</option><option value="servicios">Servicios</option>
+        <option value="predial-agua">Predial / Agua</option><option value="reparaciones">Reparaciones</option>
+        <option value="legales">Legales</option><option value="otros" selected>Otros</option>
+      </select></div>
+      <div><label class="g-lbl">Monto ($)</label><input id="gMonto" type="number" step="0.01" min="0" class="g-inp" placeholder="0.00"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 2fr auto;gap:10px;align-items:end;">
+      <div><label class="g-lbl">Concepto</label><input id="gConcepto" class="g-inp" placeholder="Descripción del gasto"></div>
+      <div><label class="g-lbl">¿Comprobante?</label><select id="gComp" class="g-inp"><option value="">No</option><option value="Sí">Sí</option></select></div>
+      <div><label class="g-lbl">Nota (opcional)</label><input id="gNota" class="g-inp" placeholder=""></div>
+      <button class="pago-confirm-btn" style="padding:10px 18px;" onclick="registrarGastoUI()">＋ Registrar</button>
+    </div>
+  </div>
+  <!-- Filtros -->
+  <div class="toolbar">
+    <select class="filter-select" id="gFiltUb" onchange="renderGastos()"><option value="">Todos los inmuebles</option></select>
+    <input class="filter-select" id="gFiltMes" type="month" onchange="renderGastos()" style="color-scheme:dark;">
+    <select class="filter-select" id="gFiltCat" onchange="renderGastos()">
+      <option value="">Todas las categorías</option>
+      <option value="mantenimiento">Mantenimiento</option><option value="servicios">Servicios</option>
+      <option value="predial-agua">Predial / Agua</option><option value="reparaciones">Reparaciones</option>
+      <option value="legales">Legales</option><option value="otros">Otros</option>
+    </select>
+    <button class="btn-xs teal" style="padding:8px 12px;" onclick="document.getElementById('gFiltUb').value='';document.getElementById('gFiltMes').value='';document.getElementById('gFiltCat').value='';renderGastos()">✕ Limpiar</button>
+  </div>
+  <div class="table-wrap" style="overflow-x:auto;">
+    <table class="tabla" style="width:100%;border-collapse:collapse;">
+      <thead><tr style="background:rgba(15,32,39,.8);">
+        <th class="g-th">Fecha</th><th class="g-th">Inmueble</th><th class="g-th">Depto</th><th class="g-th">Categoría</th>
+        <th class="g-th">Concepto</th><th class="g-th" style="text-align:right;">Monto</th><th class="g-th">Comp.</th><th class="g-th">Nota</th><th class="g-th"></th>
+      </tr></thead>
+      <tbody id="gastosBody"></tbody>
+    </table>
+  </div>
+</section>
+<style>
+.g-lbl{font-size:10px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.g-inp{width:100%;padding:9px;border:1px solid rgba(123,173,168,.3);background:rgba(15,32,39,.6);color:#fff;border-radius:6px;font-size:13px;box-sizing:border-box;color-scheme:dark;}
+.g-th{padding:9px 10px;text-align:left;font-size:10px;color:#7BADA8;letter-spacing:1px;text-transform:uppercase;}
+.g-td{padding:8px 10px;font-size:12px;border-bottom:1px solid rgba(123,173,168,.12);color:rgba(255,255,255,.85);}
+</style>
 
 <!-- COMUNICADOS -->
 <section class="section" id="sec-comunicados">
@@ -499,6 +556,19 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">% Moratorio</label>
             <input id="nMor" type="number" min="0" placeholder="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div>
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Modo de administración</label>
+            <select id="nModoAdmin" onchange="document.getElementById('nPctComWrap').style.display=this.value==='integral'?'block':'none'" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+              <option value="comision">Solo comisión (normal)</option>
+              <option value="integral">Administración integral (corte al dueño)</option>
+            </select>
+          </div>
+          <div id="nPctComWrap" style="display:none;">
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">% Comisión sobre renta cobrada</label>
+            <input id="nPctCom" type="number" min="0" max="100" step="0.5" placeholder="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
         </div>
 
@@ -765,6 +835,22 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <textarea id="eNt" rows="3" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
         </div>
 
+        <!-- ADMINISTRACIÓN -->
+        <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">ADMINISTRACIÓN</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div>
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Modo de administración</label>
+            <select id="eModoAdmin" onchange="document.getElementById('ePctComWrap').style.display=this.value==='integral'?'block':'none'" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+              <option value="comision">Solo comisión (normal)</option>
+              <option value="integral">Administración integral (corte al dueño)</option>
+            </select>
+          </div>
+          <div id="ePctComWrap" style="display:none;">
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">% Comisión sobre renta cobrada</label>
+            <input id="ePctCom" type="number" min="0" max="100" step="0.5" placeholder="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+          </div>
+        </div>
+
         <!-- ESTATUS DEL CONTRATO -->
         <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">ESTATUS DEL CONTRATO</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
@@ -937,8 +1023,26 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
   </div>
 </div>
 
+<!-- MODAL CORTE MENSUAL AL DUEÑO -->
+<div id="modalCorte" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;overflow-y:auto;">
+  <div style="background:#fff;max-width:900px;margin:32px auto;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background:#0F2027;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#e8c97a;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:bold;" id="corteTitulo">💼 CORTE MENSUAL</span>
+      <button onclick="cerrarCorte()" style="background:none;border:none;color:#7BADA8;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:14px 24px;background:#EEF2F3;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #dde;">
+      <span style="font-size:11px;color:#567;letter-spacing:1px;text-transform:uppercase;">Periodo:</span>
+      <button onclick="cambiarMesCorte(-1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">◀</button>
+      <b id="corteMesLabel" style="min-width:130px;text-align:center;color:#0F2027;"></b>
+      <button onclick="cambiarMesCorte(1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">▶</button>
+      <button onclick="imprimirCorte()" style="margin-left:auto;background:#6d5a2e;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
+    </div>
+    <div style="padding:22px 24px;color:#222;" id="corteBody"></div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34o — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34p — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1073,7 +1177,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34o · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34p · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1166,7 +1270,7 @@ function parseFecha(v){
 // Normaliza un contrato cargado desde Sheets (números como texto, fechas con hora, booleanos como 'TRUE')
 function normalizarContrato(c){
   c.id = Number(c.id);
-  ['r','dep','cpol','dp','gr','mor','pag','adeudoIni'].forEach(k=>{
+  ['r','dep','cpol','dp','gr','mor','pag','adeudoIni','pctComision'].forEach(k=>{
     if(c[k]!==undefined && c[k]!==null) c[k] = Number(c[k]) || 0;
   });
   c.ini = toDateInput(c.ini);
@@ -1176,11 +1280,14 @@ function normalizarContrato(c){
   if(typeof c.mant === 'string') c.mant = c.mant.toLowerCase() === 'true';
   if(typeof c.est === 'string') c.est = c.est.toLowerCase() === 'true';
   if(!c.estatus) c.estatus = 'activo';
+  if(!c.modoAdmin) c.modoAdmin = 'comision';
   return c;
 }
 
 // Estatus del contrato: 'activo' | 'vacante' (entregado) | 'juicio' (en litigio)
 function estatusDe(c){ return c.estatus || 'activo'; }
+// Administración integral: cobramos rentas, pagamos gastos y entregamos el neto al dueño
+function esIntegral(c){ return (c.modoAdmin || 'comision') === 'integral'; }
 function badgeEstatus(c, estilo){
   const e = estatusDe(c);
   if(e === 'vacante') return `<span class="badge" style="background:rgba(150,150,150,.25);color:#bbb;${estilo||''}">🔲 VACANTE</span>`;
@@ -1378,8 +1485,25 @@ function closeModal(){document.getElementById('modalOv').classList.remove('open'
 
 // ===== PAGOS / CONTABILIDAD DE RENTAS =====
 let PAGOS = [];          // {cid, periodo, fecha, monto, comprobante, referencia, nota, usuario, timestamp}
-let GASTOS = [];         // {id, ub, u, concepto, monto, fecha, mes:'YYYY-MM', usuario, timestamp}
+// Gasto: {id, fecha:'YYYY-MM-DD', ubicacion, contratoId ('' = gasto general del
+// edificio), categoria, concepto, monto, comprobante:'Sí'|'', nota, usuario, timestamp}
+const CATEGORIAS_GASTO = ['mantenimiento','servicios','predial-agua','reparaciones','legales','otros'];
+let GASTOS = [];
 try { GASTOS = JSON.parse(localStorage.getItem('moctezuma_gastos') || '[]') || []; } catch(e){ GASTOS = []; }
+// Migración del esquema viejo {ub, mes, u} → {ubicacion, contratoId, categoria}
+function migrarGasto(g){
+  if(g && g.ub !== undefined && g.ubicacion === undefined){
+    g.ubicacion = g.ub;
+    g.fecha = g.fecha || ((g.mes||'') + '-01');
+    g.contratoId = '';
+    g.categoria = g.categoria || 'otros';
+    g.comprobante = g.comprobante || '';
+    g.nota = g.nota || '';
+    delete g.ub; delete g.mes; delete g.u;
+  }
+  return g;
+}
+GASTOS = GASTOS.map(migrarGasto);
 let mesSel = '';         // 'YYYY-MM' del periodo seleccionado
 let mesSelDate = null;   // Date del periodo seleccionado
 
@@ -1391,16 +1515,16 @@ async function cargarGastos(){
   if(SHEETS_URL && sheetsConectado){
     try {
       const d = await jsonpFetch(SHEETS_URL + '?action=getGastos');
-      if(Array.isArray(d)){ GASTOS = d; persistGastosLocal(); }
+      if(Array.isArray(d)){ GASTOS = d.map(migrarGasto); persistGastosLocal(); }
     } catch(e){ console.warn('Carga de gastos falló (usa local):', e.message); }
   }
 }
 function guardarGasto(g){
   GASTOS.push(g);
   persistGastosLocal();
-  registrarAuditoria('GASTO_REGISTRADO', 0, `${g.ub} — ${g.concepto} — ${fM(g.monto)}`);
+  registrarAuditoria('GASTO_REGISTRADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.categoria} — ${g.concepto} — ${fM(g.monto)}`);
   if(SHEETS_URL && sheetsConectado){
-    jsonpFetch(SHEETS_URL + '?action=saveGasto&data=' + encodeURIComponent(JSON.stringify(g)))
+    jsonpFetch(SHEETS_URL + '?action=saveGasto&data=' + encodeURIComponent(JSON.stringify(g)) + '&user=' + encodeURIComponent(currentUser))
       .catch(err => console.warn('saveGasto Sheets error:', err.message));
   }
 }
@@ -1410,7 +1534,7 @@ function eliminarGastoData(id){
   const g = GASTOS[idx];
   GASTOS.splice(idx, 1);
   persistGastosLocal();
-  registrarAuditoria('GASTO_ELIMINADO', 0, `${g.ub} — ${g.concepto} — ${fM(g.monto)}`);
+  registrarAuditoria('GASTO_ELIMINADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.concepto} — ${fM(g.monto)}`);
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=deleteGasto&data=' + encodeURIComponent(JSON.stringify({id:id})) + '&user=' + encodeURIComponent(currentUser))
       .catch(err => console.warn('deleteGasto Sheets error:', err.message));
@@ -1418,8 +1542,87 @@ function eliminarGastoData(id){
   return g;
 }
 function gastosDe(ub, mes){
-  return GASTOS.filter(g => g.ub === ub && g.mes === mes)
+  return GASTOS.filter(g => g.ubicacion === ub && String(g.fecha||'').slice(0,7) === mes)
     .sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
+}
+
+// ── Sección Gastos (UI) ──
+let gastosUIListo = false;
+function initGastosUI(){
+  const sel = document.getElementById('gUb');
+  if(!sel) return;
+  const ubs = [...new Set(C.map(c=>c.ub))].sort();
+  sel.innerHTML = ubs.map(u=>`<option>${u}</option>`).join('');
+  document.getElementById('gFiltUb').innerHTML = '<option value="">Todos los inmuebles</option>' + ubs.map(u=>`<option>${u}</option>`).join('');
+  document.getElementById('gFecha').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+  document.getElementById('gFiltMes').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+  llenarDeptosGasto();
+  gastosUIListo = true;
+}
+function llenarDeptosGasto(){
+  const ub = document.getElementById('gUb').value;
+  document.getElementById('gCid').innerHTML = '<option value="">— Gasto general del edificio —</option>' +
+    C.filter(c=>c.ub===ub).sort((a,b)=>String(a.u).localeCompare(String(b.u)))
+      .map(c=>`<option value="${c.id}">${c.u} · ${c.inq}</option>`).join('');
+}
+function registrarGastoUI(){
+  if(currentRole!=='Administrador'){ toast('Solo el Administrador puede registrar gastos','error'); return; }
+  const fecha = document.getElementById('gFecha').value;
+  const ubicacion = document.getElementById('gUb').value;
+  const concepto = document.getElementById('gConcepto').value.trim();
+  const monto = Number(document.getElementById('gMonto').value);
+  if(!fecha || !ubicacion || !concepto || !(monto>0)){ toast('Completa fecha, inmueble, concepto y un monto válido','warn'); return; }
+  guardarGasto({
+    id:'g'+Date.now()+Math.floor(Math.random()*1000),
+    fecha, ubicacion,
+    contratoId: document.getElementById('gCid').value || '',
+    categoria: document.getElementById('gCat').value,
+    concepto, monto,
+    comprobante: document.getElementById('gComp').value,
+    nota: document.getElementById('gNota').value.trim(),
+    usuario: currentUser, timestamp: new Date().toISOString()
+  });
+  document.getElementById('gConcepto').value=''; document.getElementById('gMonto').value=''; document.getElementById('gNota').value='';
+  renderGastos();
+  toast('✅ Gasto registrado','success');
+}
+function renderGastos(){
+  const body = document.getElementById('gastosBody');
+  if(!body) return;
+  if(!gastosUIListo) initGastosUI();
+  const fu = document.getElementById('gFiltUb').value;
+  const fm = document.getElementById('gFiltMes').value;
+  const fc = document.getElementById('gFiltCat').value;
+  const arr = GASTOS.filter(g =>
+      (!fu || g.ubicacion === fu) &&
+      (!fm || String(g.fecha||'').slice(0,7) === fm) &&
+      (!fc || g.categoria === fc))
+    .sort((a,b)=> String(b.fecha).localeCompare(String(a.fecha)));
+  const puedeEliminar = currentRole === 'Administrador';
+  body.innerHTML = arr.map(g => {
+    const c = g.contratoId ? C.find(x=>x.id===Number(g.contratoId)) : null;
+    return `<tr>
+      <td class="g-td">${fF(g.fecha)}</td>
+      <td class="g-td">${g.ubicacion}</td>
+      <td class="g-td">${c ? c.u : '<span style="opacity:.4;">General</span>'}</td>
+      <td class="g-td">${g.categoria||'otros'}</td>
+      <td class="g-td">${g.concepto}${g.nota?`<div style="font-size:10px;opacity:.5;">${g.nota}</div>`:''}</td>
+      <td class="g-td" style="text-align:right;font-family:'Orbitron',sans-serif;">${fM(g.monto)}</td>
+      <td class="g-td">${g.comprobante==='Sí'?'📎':''}</td>
+      <td class="g-td" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;">${g.usuario?`<span style="font-size:10px;opacity:.4;">${g.usuario}</span>`:''}</td>
+      <td class="g-td">${puedeEliminar?`<button class="btn-xs" style="background:#7a1a1a;color:#fff;" onclick="eliminarGastoUI('${g.id}')">🗑️</button>`:''}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9" class="g-td" style="text-align:center;opacity:.4;padding:20px;">Sin gastos con este filtro</td></tr>';
+  const total = arr.reduce((s,g)=>s+(Number(g.monto)||0),0);
+  document.getElementById('gs-total').textContent = fM(total);
+  document.getElementById('gs-total-sub').textContent = `${arr.length} gasto${arr.length!==1?'s':''}${fm?' · '+fm:''}${fu?' · '+fu:''}`;
+}
+function eliminarGastoUI(id){
+  if(currentRole!=='Administrador'){ toast('Solo el Administrador puede eliminar gastos','error'); return; }
+  if(!confirm('¿Eliminar este gasto?')) return;
+  eliminarGastoData(id);
+  renderGastos();
+  toast('🗑️ Gasto eliminado','warn');
 }
 
 function initPagos(){
@@ -1653,6 +1856,7 @@ function renderPagos(){
           <span>Atraso vencido: <b style="color:${atrasoEd>0.01?'var(--danger)':'var(--success)'};">${fM(atrasoEd)}</b></span>
           <span>🟢 ${alCorriente} al corriente · 🔴 ${conAtraso} con atraso${vacantes?` · 🔲 ${vacantes} vacante${vacantes!==1?'s':''}`:''}</span>
           ${arr.length>1?`<button class="btn-xs teal" style="padding:5px 10px;" onclick="reporteEdificio('${String(ub).replace(/'/g,"\\'")}')">📄 Informe</button>`:''}
+          ${arr.some(esIntegral)?`<button class="btn-xs" style="padding:5px 10px;background:#6d5a2e;color:#f5e6c5;" onclick="corteMensual('${String(ub).replace(/'/g,"\\'")}')">💼 Corte dueño</button>`:''}
         </div>
       </div>
       <div class="pagos-grid">${cards}</div>
@@ -2005,7 +2209,7 @@ function agregarGastoReporte(){
   const monto = Number(document.getElementById('repGMonto').value);
   const fecha = document.getElementById('repGFecha').value || (repMesStr()+'-01');
   if(!concepto || !(monto>0)){ toast('Escribe un concepto y un monto válido','warn'); return; }
-  guardarGasto({ id:'g'+Date.now()+Math.floor(Math.random()*1000), ub:repUb, u:'', concepto, monto, fecha, mes:repMesStr(), usuario:currentUser, timestamp:new Date().toISOString() });
+  guardarGasto({ id:'g'+Date.now()+Math.floor(Math.random()*1000), fecha, ubicacion:repUb, contratoId:'', categoria:'otros', concepto, monto, comprobante:'', nota:'', usuario:currentUser, timestamp:new Date().toISOString() });
   renderReporte();
   toast('✅ Gasto registrado','success');
 }
@@ -2028,6 +2232,135 @@ function imprimirReporte(){
   w.document.close(); setTimeout(()=>w.print(),400);
 }
 
+// ===== CORTE MENSUAL AL DUEÑO (administración integral) =====
+// Ingresos por FECHA DE COBRO (base caja: lo que entró en el mes se entrega en
+// ese corte, aunque el pago corresponda a rentas de meses anteriores).
+let corteUb = '', corteMesDate = null;
+
+function corteMensual(ub){
+  corteUb = ub;
+  corteMesDate = mesSelDate ? new Date(mesSelDate.getFullYear(), mesSelDate.getMonth(), 1)
+                            : new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  document.getElementById('modalCorte').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  renderCorte();
+}
+function cerrarCorte(){
+  document.getElementById('modalCorte').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function cambiarMesCorte(delta){
+  corteMesDate = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+delta, 1);
+  renderCorte();
+}
+function corteMesStr(){ return `${corteMesDate.getFullYear()}-${String(corteMesDate.getMonth()+1).padStart(2,'0')}`; }
+function corteMesLabel(){ return `${MES[corteMesDate.getMonth()]} ${corteMesDate.getFullYear()}`; }
+
+function corteDatos(){
+  const ub = corteUb, mes = corteMesStr();
+  const integrales = C.filter(c => c.ub === ub && esIntegral(c))
+    .sort((a,b)=> String(a.u).localeCompare(String(b.u)));
+  const idsInt = new Set(integrales.map(c=>c.id));
+  // INGRESOS: pagos cobrados en el mes (fecha de pago) de contratos integrales
+  const ingresos = PAGOS.filter(p => idsInt.has(Number(p.cid)) && String(toDateInput(p.fecha)).slice(0,7) === mes)
+    .map(p => {
+      const c = C.find(x=>x.id===Number(p.cid));
+      const pct = Number(c.pctComision) || 0;
+      const monto = Number(p.monto) || 0;
+      return {cid:c.id, u:c.u, inq:c.inq, fecha:toDateInput(p.fecha), periodo:String(p.periodo||'').slice(0,7),
+              monto, pct, comision: Math.round(monto*pct)/100};
+    })
+    .sort((a,b)=> String(a.u).localeCompare(String(b.u)) || a.fecha.localeCompare(b.fecha));
+  const totalIngresos = ingresos.reduce((s,i)=>s+i.monto, 0);
+  const totalComision = Math.round(ingresos.reduce((s,i)=>s+i.comision, 0)*100)/100;
+  // Deptos integrales SIN cobro en el mes (incluye vacantes/juicio) — panorama completo
+  const sinCobro = integrales.filter(c => !ingresos.some(i => i.cid === c.id))
+    .map(c => ({u:c.u, inq:c.inq, estatus:estatusDe(c)}));
+  // EGRESOS
+  const gastos = gastosDe(ub, mes);
+  const totalGastos = gastos.reduce((s,g)=>s+(Number(g.monto)||0), 0);
+  const neto = Math.round((totalIngresos - totalGastos - totalComision)*100)/100;
+  const props = [...new Set(integrales.map(c=>c.prop).filter(Boolean))];
+  return {ub, mes, integrales, ingresos, sinCobro, totalIngresos, totalComision, gastos, totalGastos, neto,
+          propietario: props.join(', ') || '—'};
+}
+
+function corteBodyHTML(d){
+  const th = 'background:#0F2027;color:#e8c97a;padding:8px;text-align:left;font-size:11px;';
+  const S  = 'font-family:Orbitron,Arial,sans-serif;font-size:13px;color:#0F2027;font-weight:bold;border-bottom:2px solid #6d5a2e;padding-bottom:4px;margin:22px 0 8px;';
+  const td = 'padding:6px 8px;border-bottom:1px solid #eee;';
+  const tagEst = e => e==='vacante' ? ' <span style="font-size:10px;color:#777;font-weight:bold;">🔲 VACANTE</span>'
+                : e==='juicio' ? ' <span style="font-size:10px;color:#7d3c98;font-weight:bold;">⚖️ EN JUICIO</span>' : '';
+
+  const ingresoRows = d.ingresos.map(i =>
+    `<tr><td style="${td}">${i.u}</td><td style="${td}">${i.inq}</td><td style="${td}">${fF(i.fecha)}</td>
+     <td style="${td}">${i.periodo||''}</td><td style="${td}text-align:right;">${fM(i.monto)}</td>
+     <td style="${td}text-align:right;color:#8a6d00;">${i.pct?`${i.pct}% · ${fM(i.comision)}`:'—'}</td></tr>`).join('')
+    + d.sinCobro.map(s =>
+    `<tr style="background:#fafafa;"><td style="${td}">${s.u}</td><td style="${td}">${s.inq}${tagEst(s.estatus)}</td>
+     <td style="${td}" colspan="2"><span style="color:#999;">Sin cobro en el mes</span></td>
+     <td style="${td}text-align:right;color:#999;">${fM(0)}</td><td style="${td}"></td></tr>`).join('');
+
+  const gastoRows = d.gastos.length ? d.gastos.map(g => {
+    const c = g.contratoId ? C.find(x=>x.id===Number(g.contratoId)) : null;
+    return `<tr><td style="${td}">${g.fecha?fF(g.fecha):''}</td><td style="${td}">${g.categoria||'otros'}</td>
+      <td style="${td}">${g.concepto}${g.nota?` <span style="font-size:10px;color:#999;">(${g.nota})</span>`:''}</td>
+      <td style="${td}">${c?c.u:'General'}</td><td style="${td}text-align:right;">${fM(g.monto)}</td></tr>`;
+  }).join('') : `<tr><td colspan="5" style="text-align:center;color:#999;padding:10px;">Sin gastos registrados en este periodo</td></tr>`;
+
+  return `
+  <div style="font-size:12px;color:#555;margin-bottom:6px;">
+    <b style="font-size:15px;color:#0F2027;">${d.ub} — Corte mensual al propietario</b><br>
+    Propietario/a: <b>${d.propietario}</b> · Periodo: <b>${corteMesLabel()}</b><br>
+    Administradora Moctezuma · Emitido: ${fF(new Date().toISOString().slice(0,10))}<br>
+    <span style="font-size:11px;color:#888;">Base caja: se reportan los pagos COBRADOS en el mes (columna "Renta de" indica a qué mes corresponde cada pago). Solo contratos en administración integral.</span>
+  </div>
+
+  <div style="${S}">1 · Ingresos cobrados del mes</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
+    <th style="${th}">Depto</th><th style="${th}">Inquilino</th><th style="${th}">Fecha cobro</th><th style="${th}">Renta de</th>
+    <th style="${th}text-align:right;">Cobrado</th><th style="${th}text-align:right;">Comisión</th>
+  </tr></thead><tbody>${ingresoRows}</tbody>
+  <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;padding:8px;">Total cobrado:</td>
+    <td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalIngresos)}</td>
+    <td style="text-align:right;font-weight:bold;padding:8px;color:#8a6d00;">${fM(d.totalComision)}</td></tr></tfoot></table>
+
+  <div style="${S}">2 · Egresos del mes (gastos pagados por cuenta del propietario)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
+    <th style="${th}">Fecha</th><th style="${th}">Categoría</th><th style="${th}">Concepto</th><th style="${th}">Depto</th><th style="${th}text-align:right;">Monto</th>
+  </tr></thead><tbody>${gastoRows}</tbody>
+  <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;padding:8px;">Total egresos:</td>
+    <td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalGastos)}</td></tr></tfoot></table>
+
+  <div style="${S}">3 · Liquidación</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;max-width:420px;">
+    <tr><td style="padding:6px 8px;">(+) Rentas cobradas</td><td style="text-align:right;padding:6px 8px;">${fM(d.totalIngresos)}</td></tr>
+    <tr><td style="padding:6px 8px;">(−) Gastos</td><td style="text-align:right;padding:6px 8px;color:#c0392b;">−${fM(d.totalGastos)}</td></tr>
+    <tr><td style="padding:6px 8px;">(−) Honorarios de administración</td><td style="text-align:right;padding:6px 8px;color:#c0392b;">−${fM(d.totalComision)}</td></tr>
+    <tr style="border-top:2px solid #6d5a2e;font-weight:bold;font-size:15px;">
+      <td style="padding:10px 8px;">NETO A ENTREGAR AL PROPIETARIO</td>
+      <td style="text-align:right;padding:10px 8px;color:${d.neto>=0?'#1a8a3b':'#c0392b'};">${fM(d.neto)}</td></tr>
+  </table>`;
+}
+
+function renderCorte(){
+  document.getElementById('corteTitulo').textContent = `💼 CORTE MENSUAL — ${corteUb}`;
+  document.getElementById('corteMesLabel').textContent = corteMesLabel();
+  document.getElementById('corteBody').innerHTML = corteBodyHTML(corteDatos());
+}
+
+function imprimirCorte(){
+  const d = corteDatos();
+  const w = window.open('','_blank');
+  if(!w){ toast('El navegador bloqueó la ventana de impresión — permite las ventanas emergentes','error'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Corte ${d.ub} — ${corteMesLabel()}</title>
+    <style>@page{size:letter;margin:1.6cm 2cm;}body{font-family:Arial,sans-serif;color:#000;font-size:12px;}h1{color:#0F2027;font-size:17px;border-bottom:2px solid #6d5a2e;padding-bottom:6px;}table{margin-bottom:6px;}</style></head><body>
+    <h1>Corte mensual al propietario — Moctezuma Administradora</h1>
+    ${corteBodyHTML(d)}
+    </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),400);
+}
+
 // ===== COMUNICADOS =====
 let comunSel=null,comunTipo='email';
 function renderComunList(){
@@ -2041,7 +2374,7 @@ function renderComunList(){
   }).join('');
 }
 function irComun(id){
-  showSection('comunicados',document.querySelector('.nav-tab:nth-child(4)'));
+  showSection('comunicados',document.querySelector('.nav-tab:nth-child(5)'));
   setTimeout(()=>selComun(id),80);
 }
 function selComun(id){
@@ -2137,7 +2470,7 @@ function selDocInq(id){
   document.getElementById('docPreview').style.display='none';
 }
 function irDoc(id){
-  showSection('documentos',document.querySelector('.nav-tab:nth-child(5)'));
+  showSection('documentos',document.querySelector('.nav-tab:nth-child(6)'));
   document.getElementById('docSelect').value=id;
   selDocInq(id);
 }
@@ -3982,7 +4315,9 @@ function guardarNuevoContrato(e){
     clausulas_add: document.getElementById('nClausAdd').value.trim(),
     nt:    document.getElementById('nNt').value.trim(),
     estatus: 'activo',
-    fechaDesocupacion: ''
+    fechaDesocupacion: '',
+    modoAdmin: document.getElementById('nModoAdmin').value,
+    pctComision: Number(document.getElementById('nPctCom').value) || 0
   };
   C.push(nuevo);
   cerrarNuevoContrato();
@@ -4040,6 +4375,10 @@ function abrirEditarContrato(id){
   document.getElementById('eTit').value   = c.tit || '';
   document.getElementById('eClabe').value = c.clabe|| '';
   document.getElementById('eNt').value    = c.nt  || '';
+  // Administración
+  document.getElementById('eModoAdmin').value = c.modoAdmin || 'comision';
+  document.getElementById('ePctCom').value = c.pctComision || '';
+  document.getElementById('ePctComWrap').style.display = esIntegral(c) ? 'block' : 'none';
   // Estatus
   document.getElementById('eEstatus').value = estatusDe(c);
   document.getElementById('eFechaDesoc').value = toDateInput(c.fechaDesocupacion);
@@ -4126,6 +4465,8 @@ function guardarEdicionContrato(e){
     tipoInmueble: document.getElementById('eTipoInmueble').value,
     clausulas_add: document.getElementById('eClausAdd').value.trim(),
     nt:    document.getElementById('eNt').value.trim(),
+    modoAdmin: document.getElementById('eModoAdmin').value,
+    pctComision: Number(document.getElementById('ePctCom').value) || 0,
     estatus: document.getElementById('eEstatus').value,
     fechaDesocupacion: document.getElementById('eEstatus').value==='vacante' ? document.getElementById('eFechaDesoc').value : '',
     adeudoIni: currentRole==='Administrador' ? (Number(document.getElementById('eAdeudoIni').value)||0) : (C[idx].adeudoIni||0),
