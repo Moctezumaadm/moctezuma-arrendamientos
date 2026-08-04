@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34l</title>
+<title>Moctezuma — Control de Arrendamientos v34m</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -199,7 +199,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34l · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34m · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -773,11 +773,11 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <input id="eAdeudoIni" type="number" min="0" step="0.01" placeholder="0" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
           <div>
-            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Fecha de corte (inicio contabilidad)</label>
-            <input id="eFechaCorte" type="date" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Pagado hasta (mes)</label>
+            <input id="ePagadoHasta" type="month" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
         </div>
-        <div id="eContabHint" style="font-size:11px;color:#888;margin-bottom:20px;line-height:1.5;">Si lo dejas vacío, la contabilidad inicia desde la fecha de inicio del contrato con saldo cero.</div>
+        <div id="eContabHint" style="font-size:11px;color:#888;margin-bottom:20px;line-height:1.5;">Los cargos de renta se generan desde el mes SIGUIENTE al indicado en "Pagado hasta"; los pagos con fecha anterior a ese corte ya no se aplican. Si el inquilino traía deuda al corte, ponla en "Adeudo inicial". Si dejas todo vacío, la contabilidad inicia desde la fecha de inicio del contrato con saldo cero.</div>
 
         <!-- BOTONES -->
         <div style="display:flex;justify-content:flex-end;gap:12px;">
@@ -920,7 +920,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34l — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34m — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1055,7 +1055,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34l · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34m · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1410,11 +1410,14 @@ function irMesActual(){
   renderPagos();
 }
 
-// Cuota de mantenimiento INCLUIDA en la renta que aún NO se cobra (por edificio).
-// Se descuenta de la renta mensual mientras esté aquí. TEMPORAL: cuando se firmen
-// los contratos actualizados de Dr Velasco 106 se elimina esta entrada (o se pone
-// en 0) y el sistema empieza a cobrar la cuota automáticamente.
-const MTTO_INCLUIDO = { 'Dr Velasco 106': 300 };
+// Cuota de mantenimiento INCLUIDA en la renta con fecha de inicio de cobro.
+// Antes de `cobrarDesde` (periodo YYYY-MM) la cuota se DESCUENTA de la renta
+// mensual (no se cobraba); a partir de ese mes se cobra la renta completa.
+const MTTO_INCLUIDO = { 'Dr Velasco 106': { monto: 300, cobrarDesde: '2026-08' } };
+
+// Pena moratoria: DESACTIVADA por política actual (hasta que se firmen los
+// contratos actualizados). Poner en true cuando se decida empezar a cobrarla.
+const MORA_ACTIVA = false;
 
 // ── Núcleo de cálculo: estado de cuenta de un contrato ──
 // Genera cargos mensuales de renta desde fechaCorte (o ini), aplica mora
@@ -1428,19 +1431,28 @@ function calcularEstadoCuenta(c, hastaDate){
   const dp = Number(c.dp) || 1;
   const gr = Number(c.gr) || 0;
   const morPct = Number(c.mor) || 0;
-  // Renta efectiva = renta contractual menos la cuota de mantenimiento aún no aplicada
-  const mttoNoAplicado = MTTO_INCLUIDO[c.ub] || 0;
-  const renta = Math.max(0, (Number(c.r) || 0) - mttoNoAplicado);
+  const hoyD = new Date();
+  // Renta efectiva del periodo: si la cuota de mantenimiento incluida aún no se
+  // cobraba en ese mes, se descuenta; desde `cobrarDesde` se cobra completa.
+  const rentaFull = Number(c.r) || 0;
+  const mtto = MTTO_INCLUIDO[c.ub];
+  const rentaDelPeriodo = per => (mtto && per < mtto.cobrarDesde)
+    ? Math.max(0, rentaFull - mtto.monto) : rentaFull;
 
-  // Pagos del contrato ordenados por fecha
-  const pagos = PAGOS.filter(p => Number(p.cid) === c.id)
+  // Pagos del contrato ordenados por fecha. Los pagos ANTERIORES al corte
+  // contable (fechaCorte) pertenecen a la cuenta vieja ya cortada y NO se
+  // aplican: esa historia queda resumida en adeudoIni (o en "pagado hasta").
+  const corte = c.fechaCorte ? parseFecha(c.fechaCorte) : null;
+  const pagosTodos = PAGOS.filter(p => Number(p.cid) === c.id)
     .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
+  const pagos = corte ? pagosTodos.filter(p => p._f >= corte) : pagosTodos;
+  const pagosExcluidos = pagosTodos.length - pagos.length;
+  const montoExcluido = pagosTodos.reduce((s,p)=>s+p.monto,0) - pagos.reduce((s,p)=>s+p.monto,0);
 
-  // Construir periodos mensuales — RENTA ADELANTADA: el cargo que vence el día
-  // `dp` de un mes cubre la OCUPACIÓN del mes SIGUIENTE (el inquilino paga por
-  // adelantado). El conteo de cargos y las fechas de vencimiento no cambian,
-  // solo la etiqueta `periodo` = mes de ocupación.
+  // Construir periodos mensuales — la renta se paga INICIANDO el mes de
+  // ocupación (no por mes vencido): el cargo del mes M vence el día `dp`
+  // del propio mes M y `periodo` = ese mismo mes.
   const filas = [];
   if(adeudoIni > 0){
     filas.push({periodo:'Saldo inicial', tipo:'inicial', fecha:base, fechaVenc:base, renta:adeudoIni, mora:0});
@@ -1449,27 +1461,27 @@ function calcularEstadoCuenta(c, hastaDate){
   const tope = new Date(hastaDate.getFullYear(), hastaDate.getMonth(), 1);
   while(cur <= tope){
     const y = cur.getFullYear(), m = cur.getMonth();
-    const occ = new Date(y, m + 1, 1); // mes de ocupación (pago adelantado)
+    const per = `${y}-${String(m+1).padStart(2,'0')}`;
     filas.push({
-      periodo: `${occ.getFullYear()}-${String(occ.getMonth()+1).padStart(2,'0')}`,
+      periodo: per,
       tipo: 'renta',
       fecha: new Date(y, m, dp),          // fecha de vencimiento del pago
       fechaVenc: new Date(y, m, dp + gr),
-      renta: renta,
+      renta: rentaDelPeriodo(per),
       mora: 0
     });
     cur = new Date(y, m+1, 1);
   }
 
-  // Calcular MORA por evento: si al vencer (dp+gr) no se cubrieron los
-  // cargos de renta acumulados hasta ese periodo, se genera 1 mora.
+  // Calcular MORA por evento: si al vencer (dp+gr, ya pasado) no se cubrieron
+  // los cargos de renta acumulados hasta ese periodo, se genera 1 mora.
   let cargoRentaAcum = 0;
   filas.forEach(f => {
     cargoRentaAcum += f.renta;
-    if(f.tipo === 'renta' && morPct > 0){
+    if(f.tipo === 'renta' && morPct > 0 && MORA_ACTIVA && hoyD > f.fechaVenc){
       const pagadoHastaVenc = pagos.filter(p => p._f <= f.fechaVenc).reduce((s,p)=>s+p.monto, 0);
       if(pagadoHastaVenc < cargoRentaAcum - 0.01){
-        f.mora = Math.round(renta * morPct / 100);
+        f.mora = Math.round(f.renta * morPct / 100);
       }
     }
   });
@@ -1484,7 +1496,6 @@ function calcularEstadoCuenta(c, hastaDate){
   // el excedente cae en cascada al siguiente (parcial o total). La mora se
   // cubre al final, también del más antiguo al más nuevo.
   let bolsa = totalPagado;
-  const hoyD = new Date();
   filas.forEach(f => {
     const cov = Math.min(bolsa, f.renta);
     f.cubierto = cov;
@@ -1520,7 +1531,8 @@ function calcularEstadoCuenta(c, hastaDate){
   const primerAtraso = filas.find(f => f.tipo!=='inicial' && f.estadoPago!=='pendiente' && f.saldoRentaFila > 0.01)
     || (filas.find(f => f.tipo==='inicial' && f.saldoRentaFila > 0.01) || null);
 
-  return {filas, pagos, totalRenta, totalMora, totalCargo, totalPagado, rentaCubierta, moraCubierta, saldoRenta, saldoMora, saldoTotal, saldoVencido, saldoVencidoRenta, saldoPorVencer, renta, primerAtraso};
+  const renta = rentaDelPeriodo(`${tope.getFullYear()}-${String(tope.getMonth()+1).padStart(2,'0')}`);
+  return {filas, pagos, pagosExcluidos, montoExcluido, totalRenta, totalMora, totalCargo, totalPagado, rentaCubierta, moraCubierta, saldoRenta, saldoMora, saldoTotal, saldoVencido, saldoVencidoRenta, saldoPorVencer, renta, primerAtraso};
 }
 
 // ── Estado del periodo seleccionado para un contrato ──
@@ -1727,6 +1739,9 @@ function abrirEstadoCuenta(id){
        <span>${fF(String(p.fecha).slice(0,10))} · ${fM(p.monto)} · ${p.periodo}${p.referencia?' · '+p.referencia:''}</span>
        ${puedeEliminar?`<button onclick="eliminarPago(${c.id},'${p.timestamp}')" style="background:#7a1a1a;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">🗑️</button>`:''}
      </div>`).join('') : '<div style="font-size:12px;color:#999;padding:8px;">Sin pagos registrados</div>';
+  const notaExcluidos = ec.pagosExcluidos > 0
+    ? `<div style="font-size:11px;color:#a67c00;background:#fff8e1;border-radius:6px;padding:6px 10px;margin-bottom:8px;">ℹ️ ${ec.pagosExcluidos} pago(s) por ${fM(ec.montoExcluido)} son anteriores al corte contable y no se aplican a esta cuenta.</div>`
+    : '';
 
   document.getElementById('edoBody').innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px;">
@@ -1761,6 +1776,7 @@ function abrirEstadoCuenta(id){
       </table>
     </div>
     <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Pagos registrados${puedeEliminar?' (puedes eliminar)':''}</div>
+    ${notaExcluidos}
     ${listaPagos}
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
       <button onclick="imprimirEstadoCuenta(${c.id})" style="padding:9px 18px;background:#0F2027;color:#7BADA8;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir</button>
@@ -3973,15 +3989,23 @@ function abrirEditarContrato(id){
   document.getElementById('eTit').value   = c.tit || '';
   document.getElementById('eClabe').value = c.clabe|| '';
   document.getElementById('eNt').value    = c.nt  || '';
-  // Contabilidad
+  // Contabilidad — fechaCorte (primer mes con cargos) se muestra como el mes
+  // ANTERIOR: "pagado hasta". p.ej. fechaCorte 2026-07-01 → pagado hasta 2026-06.
   document.getElementById('eAdeudoIni').value = c.adeudoIni || '';
-  document.getElementById('eFechaCorte').value = toDateInput(c.fechaCorte);
+  let pagadoHasta = '';
+  const fcStr = toDateInput(c.fechaCorte);
+  if(fcStr){
+    const fc = parseFecha(fcStr);
+    const prev = new Date(fc.getFullYear(), fc.getMonth()-1, 1);
+    pagadoHasta = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
+  }
+  document.getElementById('ePagadoHasta').value = pagadoHasta;
   // El adeudo inicial solo lo edita el Administrador
   const esAdmin = currentRole === 'Administrador';
   document.getElementById('eAdeudoIni').disabled = !esAdmin;
-  document.getElementById('eFechaCorte').disabled = !esAdmin;
+  document.getElementById('ePagadoHasta').disabled = !esAdmin;
   document.getElementById('eContabHint').textContent = esAdmin
-    ? 'Si lo dejas vacío, la contabilidad inicia desde la fecha de inicio del contrato con saldo cero.'
+    ? 'Los cargos de renta se generan desde el mes SIGUIENTE al indicado en "Pagado hasta"; los pagos con fecha anterior a ese corte ya no se aplican. Si el inquilino traía deuda al corte, ponla en "Adeudo inicial". Si dejas todo vacío, la contabilidad inicia desde la fecha de inicio del contrato con saldo cero.'
     : '🔒 Solo el Administrador puede modificar el saldo inicial.';
   document.getElementById('editTitulo').textContent = `✏️ EDITAR — ${c.u} · ${c.inq}`;
   document.getElementById('modalEditar').style.display = 'block';
@@ -3991,6 +4015,14 @@ function abrirEditarContrato(id){
 function cerrarEditarContrato(){
   document.getElementById('modalEditar').style.display = 'none';
   document.body.style.overflow = '';
+}
+
+// "Pagado hasta" (YYYY-MM) → fechaCorte = día 1 del mes siguiente (YYYY-MM-01)
+function pagadoHastaACorte(ym){
+  if(!ym) return '';
+  const [y, m] = ym.split('-').map(Number);
+  const next = new Date(y, m, 1); // m es 1-based → Date(y, m) = mes siguiente
+  return `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-01`;
 }
 
 function guardarEdicionContrato(e){
@@ -4031,7 +4063,7 @@ function guardarEdicionContrato(e){
     clausulas_add: document.getElementById('eClausAdd').value.trim(),
     nt:    document.getElementById('eNt').value.trim(),
     adeudoIni: currentRole==='Administrador' ? (Number(document.getElementById('eAdeudoIni').value)||0) : (C[idx].adeudoIni||0),
-    fechaCorte: currentRole==='Administrador' ? document.getElementById('eFechaCorte').value : (C[idx].fechaCorte||''),
+    fechaCorte: currentRole==='Administrador' ? pagadoHastaACorte(document.getElementById('ePagadoHasta').value) : (C[idx].fechaCorte||''),
   };
   C[idx] = contratoActualizado;
   if(docSel && docSel.id === id) docSel = contratoActualizado;
