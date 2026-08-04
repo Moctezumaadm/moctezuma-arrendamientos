@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34n</title>
+<title>Moctezuma — Control de Arrendamientos v34o</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -199,7 +199,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34n · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34o · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -938,7 +938,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34n — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34o — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1073,7 +1073,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34n · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34o · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1824,7 +1824,7 @@ function abrirEstadoCuenta(id){
     ${notaExcluidos}
     ${listaPagos}
     <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
-      <button onclick="imprimirEstadoCuenta(${c.id})" style="padding:9px 18px;background:#0F2027;color:#7BADA8;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir</button>
+      <button onclick="imprimirEstadoCuenta(${c.id})" style="padding:9px 18px;background:#0F2027;color:#7BADA8;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
       <button onclick="cerrarEstadoCuenta()" style="padding:9px 18px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;font-size:12px;">Cerrar</button>
     </div>`;
   document.getElementById('modalEdoCuenta').style.display='block';
@@ -1875,9 +1875,10 @@ function imprimirEstadoCuenta(id){
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Estado de Cuenta — ${c.inq}</title>
     <style>@page{size:letter;margin:2cm;}body{font-family:Arial,sans-serif;color:#000;font-size:12px;}h1{color:#0F2027;font-size:18px;border-bottom:2px solid #3D7A75;padding-bottom:8px;}table{width:100%;border-collapse:collapse;margin-top:12px;}th{background:#0F2027;color:#7BADA8;padding:8px;text-align:left;font-size:11px;}td{padding:6px 8px;border-bottom:1px solid #ddd;}.tot{margin-top:16px;font-size:14px;}</style></head><body>
     <h1>Estado de Cuenta — Moctezuma Administradora</h1>
-    <p><strong>Inquilino:</strong> ${c.inq}<br><strong>Inmueble:</strong> ${c.ub} ${c.u}<br><strong>Renta mensual:</strong> ${fM(c.r)}<br><strong>Fecha de emisión:</strong> ${fF(new Date().toISOString().slice(0,10))}</p>
+    <p><strong>Inquilino:</strong> ${c.inq}<br><strong>Inmueble:</strong> ${c.ub} ${c.u}<br><strong>Renta mensual:</strong> ${fM(c.r)}${estatusDe(c)==='vacante'?`<br><strong>Estatus:</strong> VACANTE — entregado${c.fechaDesocupacion?' el '+fF(c.fechaDesocupacion):''}`:estatusDe(c)==='juicio'?'<br><strong>Estatus:</strong> EN JUICIO':''}<br><strong>Fecha de emisión:</strong> ${fF(new Date().toISOString().slice(0,10))}</p>
     <table><thead><tr><th>Fecha</th><th>Concepto</th><th style="text-align:right;">Cargo</th><th style="text-align:right;">Abono</th><th style="text-align:right;">Saldo</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="tot"><strong>Total cargos:</strong> ${fM(ec.totalCargo)} · <strong>Total pagado:</strong> ${fM(ec.totalPagado)} · <strong>Saldo pendiente:</strong> ${fM(ec.saldoTotal)}</div>
+    ${ec.pagosExcluidos>0?`<p style="font-size:10px;color:#666;">Nota: ${ec.pagosExcluidos} pago(s) por ${fM(ec.montoExcluido)} anteriores al corte contable no se aplican a esta cuenta.</p>`:''}
     </body></html>`);
   w.document.close();setTimeout(()=>w.print(),400);
 }
