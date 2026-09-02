@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34s</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Moctezuma — Control de Arrendamientos v34t</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -186,6 +186,16 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 .user-email{font-size:10px;color:rgba(255,255,255,.4);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .btn-logout{background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.7);font-size:9px;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:'Exo 2',sans-serif;letter-spacing:.5px;transition:all .2s;}
 .btn-logout:hover{background:rgba(231,76,60,.15);color:var(--danger);}
+/* Impresión directa (Ctrl+P) con el informe mensual abierto: solo el informe, tamaño carta */
+@page{size:letter;margin:15mm;}
+@media print{
+  body.mz-print-corte{background:#fff!important;overflow:visible!important;}
+  body.mz-print-corte>*:not(#modalCorte){display:none!important;}
+  body.mz-print-corte #modalCorte{display:block!important;position:static!important;width:auto!important;height:auto!important;background:none!important;overflow:visible!important;}
+  body.mz-print-corte #modalCorteBox{max-width:none!important;margin:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;}
+  body.mz-print-corte .mz-noprint{display:none!important;}
+  body.mz-print-corte #corteBody{padding:0 0 12mm!important;}
+}
 </style>
 </head>
 <body>
@@ -199,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34s · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34t · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -1025,24 +1035,24 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 
 <!-- MODAL CORTE MENSUAL AL DUEÑO -->
 <div id="modalCorte" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;overflow-y:auto;">
-  <div style="background:#fff;max-width:900px;margin:32px auto;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-    <div style="background:#0F2027;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#e8c97a;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:bold;" id="corteTitulo">💼 CORTE MENSUAL</span>
+  <div id="modalCorteBox" style="background:#fff;max-width:900px;margin:32px auto;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <div class="mz-noprint" style="background:#0F2027;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #7BADA8;">
+      <span style="color:#7BADA8;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:bold;" id="corteTitulo">💼 INFORME MENSUAL</span>
       <button onclick="cerrarCorte()" style="background:none;border:none;color:#7BADA8;font-size:20px;cursor:pointer;">✕</button>
     </div>
-    <div style="padding:14px 24px;background:#EEF2F3;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #dde;">
+    <div class="mz-noprint" style="padding:14px 24px;background:#EEF2F3;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #dde;">
       <span style="font-size:11px;color:#567;letter-spacing:1px;text-transform:uppercase;">Periodo:</span>
       <button onclick="cambiarMesCorte(-1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">◀</button>
       <b id="corteMesLabel" style="min-width:130px;text-align:center;color:#0F2027;"></b>
       <button onclick="cambiarMesCorte(1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">▶</button>
-      <button onclick="imprimirCorte()" style="margin-left:auto;background:#6d5a2e;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
+      <button onclick="imprimirCorte()" style="margin-left:auto;background:#3D7A75;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
     </div>
-    <div style="padding:22px 24px;color:#222;" id="corteBody"></div>
+    <div class="mz-inf" style="padding:22px 24px;color:#1A1A2E;" id="corteBody"></div>
   </div>
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34s — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34t — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1177,7 +1187,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34s · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34t · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1673,7 +1683,9 @@ const MORA_ACTIVA = false;
 // Genera cargos mensuales de renta desde fechaCorte (o ini), aplica mora
 // ÚNICA POR EVENTO cuando un periodo no se cubrió a tiempo, y aplica los
 // pagos PRIMERO A RENTA y luego a MORA (oldest-first).
-function calcularEstadoCuenta(c, hastaDate){
+function calcularEstadoCuenta(c, hastaDate, pagosHastaDate){
+  // pagosHastaDate (opcional): solo considera pagos con fecha <= esa fecha
+  // (saldo "al cierre de un mes"). Sin él, se aplican todos los pagos (comportamiento original).
   hastaDate = hastaDate || new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const adeudoIni = Number(c.adeudoIni) || 0;
   const baseStr = c.fechaCorte || c.ini;
@@ -1696,9 +1708,10 @@ function calcularEstadoCuenta(c, hastaDate){
   const pagosTodos = PAGOS.filter(p => Number(p.cid) === c.id)
     .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
-  const pagos = corte ? pagosTodos.filter(p => p._f >= corte) : pagosTodos;
-  const pagosExcluidos = pagosTodos.length - pagos.length;
-  const montoExcluido = pagosTodos.reduce((s,p)=>s+p.monto,0) - pagos.reduce((s,p)=>s+p.monto,0);
+  const pagosCorte = corte ? pagosTodos.filter(p => p._f >= corte) : pagosTodos;
+  const pagosExcluidos = pagosTodos.length - pagosCorte.length;
+  const montoExcluido = pagosTodos.reduce((s,p)=>s+p.monto,0) - pagosCorte.reduce((s,p)=>s+p.monto,0);
+  const pagos = pagosHastaDate ? pagosCorte.filter(p => p._f <= pagosHastaDate) : pagosCorte;
 
   // Construir periodos mensuales — la renta se paga INICIANDO el mes de
   // ocupación (no por mes vencido): el cargo del mes M vence el día `dp`
@@ -2252,17 +2265,94 @@ function imprimirReporte(){
 // ese corte, aunque el pago corresponda a rentas de meses anteriores).
 let corteUb = '', corteMesDate = null;
 
+// Orden natural de departamentos: 1, 2, 10 (no 1, 10, 2); soporta "PB", "2A", "12/CTO".
+function cmpDepto(a, b){
+  return String(a.u).localeCompare(String(b.u), 'es', {numeric:true, sensitivity:'base'});
+}
+
+// Estilos del informe (pantalla e impresión). Se inyectan una vez en la app y
+// se copian a la ventana de impresión. Sobrescriben las reglas globales del
+// tema oscuro (tbody td blanco, hover, cursor) que dejaban el texto invisible.
+const CORTE_CSS = `
+.mz-inf{font-family:'Rajdhani','Century Gothic',Calibri,'Exo 2',Arial,sans-serif;color:#1A1A2E;font-size:12.5px;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.mz-inf *{box-sizing:border-box;}
+.mz-inf .mz-hoja{background:#fff;color:#1A1A2E;}
+.mz-inf .mz-hoja2{margin-top:30px;border-top:2px dashed #7BADA8;padding-top:16px;}
+.mz-inf .mz-hoja2-lbl{font-size:9.5px;color:#7BADA8;letter-spacing:2px;text-transform:uppercase;text-align:right;margin:-8px 0 6px;}
+.mz-inf .mz-head{background:#0F2027;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:14px;border-bottom:3px solid #7BADA8;}
+.mz-inf .mz-head img{height:44px;max-width:150px;object-fit:contain;background:#fff;border-radius:4px;padding:3px;}
+.mz-inf .mz-marca{font-family:'Orbitron',sans-serif;font-weight:700;font-size:12.5px;letter-spacing:2px;color:#7BADA8;line-height:1.2;}
+.mz-inf .mz-marca small{display:block;font-family:'Rajdhani','Century Gothic',Calibri,sans-serif;font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.65);font-weight:600;margin-top:2px;}
+.mz-inf .mz-titulo{margin-left:auto;text-align:right;}
+.mz-inf .mz-titulo b{display:block;font-family:'Orbitron',sans-serif;font-size:11.5px;color:#fff;letter-spacing:1px;}
+.mz-inf .mz-titulo span{display:block;font-size:12px;color:#7BADA8;font-weight:600;margin-top:2px;}
+.mz-inf .mz-meta{font-size:11px;color:#3D7A75;margin:10px 0 2px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 14px;}
+.mz-inf .mz-meta b{color:#0F2027;}
+.mz-inf .mz-nota{font-size:10.5px;color:#5c6b70;margin:2px 0 0;}
+.mz-inf .mz-aviso{font-size:11px;color:#8a6d00;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;padding:6px 10px;margin:8px 0 0;}
+.mz-inf h2{font-family:'Orbitron',sans-serif;font-size:11.5px;letter-spacing:1.5px;color:#3D7A75;text-transform:uppercase;margin:18px 0 6px;padding-bottom:4px;border-bottom:1px solid #7BADA8;}
+.mz-inf table{width:100%;border-collapse:collapse;font-size:12px;margin:0;}
+.mz-inf thead{background:#0F2027;}
+.mz-inf thead th{background:#0F2027;color:#fff;font-family:'Rajdhani','Century Gothic',Calibri,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:7px 8px;text-align:left;border:none;white-space:nowrap;}
+.mz-inf tbody tr{cursor:default;border-bottom:1px solid #e3e8ea;page-break-inside:avoid;break-inside:avoid;}
+.mz-inf tbody tr:hover{background:transparent;}
+.mz-inf tbody td{padding:6px 8px;color:#1A1A2E;vertical-align:middle;}
+.mz-inf tbody tr:nth-child(even)>td{background:#F4F6F7;}
+.mz-inf tbody tr.ok>td{background:#E3F1EC;}
+.mz-inf tbody tr.bad>td{background:#FBE4E4;}
+.mz-inf .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.mz-inf .ctr{text-align:center;}
+.mz-inf .sub{display:block;font-size:10px;color:#5c6b70;font-weight:500;}
+.mz-inf .tag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.5px;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;white-space:nowrap;}
+.mz-inf .tag.juicio{color:#0F2027;border:1px solid #0F2027;background:#fff;}
+.mz-inf .tag.vac{color:#8a2b2b;border:1px solid #d9a3a3;background:#fff;margin-left:0;}
+.mz-inf tfoot td{padding:7px 8px;font-weight:700;border-top:2px solid #7BADA8;background:#fff;color:#0F2027;}
+.mz-inf .rojo{color:#B03A2E;font-weight:700;}
+.mz-inf .verde{color:#1E7B4F;font-weight:700;}
+.mz-inf .vacio{text-align:center;color:#7a8a8f;padding:10px;}
+.mz-inf .mz-liq{width:100%;max-width:400px;margin-left:auto;border-collapse:collapse;}
+.mz-inf .mz-liq td{padding:6px 8px;border-bottom:1px solid #e3e8ea;color:#1A1A2E;background:#fff;}
+.mz-inf .mz-liq tr.neto td{background:#0F2027;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;padding:10px 8px;border:none;}
+.mz-inf .mz-liq tr.neto td.num{font-size:14px;}
+.mz-inf .mz-firma{margin:48px auto 10px;text-align:center;width:270px;page-break-inside:avoid;break-inside:avoid;}
+.mz-inf .mz-firma .linea{border-top:1px solid #1A1A2E;margin-bottom:5px;}
+.mz-inf .mz-firma b{display:block;font-size:12.5px;color:#0F2027;}
+.mz-inf .mz-firma span{font-size:10.5px;color:#3D7A75;letter-spacing:.5px;}
+.mz-inf .mz-foot{margin-top:18px;border-top:1px solid #7BADA8;padding-top:5px;font-size:8.5pt;color:#7BADA8;text-align:center;letter-spacing:.3px;}
+.mz-inf .mz-foot-print{display:none;}
+@media print{
+  .mz-inf{font-size:11.5pt;}
+  .mz-inf .mz-hoja2{page-break-before:always;break-before:page;margin-top:0;border-top:none;padding-top:0;}
+  .mz-inf .mz-hoja2-lbl{display:none;}
+  .mz-inf .mz-hoja .mz-foot{display:none;}
+  .mz-inf .mz-foot-print{display:block;position:fixed;bottom:0;left:0;right:0;margin:0;background:#fff;}
+  .mz-inf thead{display:table-header-group;}
+  .mz-inf tr{page-break-inside:avoid;break-inside:avoid;}
+}`;
+let corteCssListo = false;
+function ensureCorteCss(){
+  if(corteCssListo) return;
+  const st = document.createElement('style');
+  st.id = 'corteCss';
+  st.textContent = CORTE_CSS;
+  document.head.appendChild(st);
+  corteCssListo = true;
+}
+
 function corteMensual(ub){
   corteUb = ub;
   corteMesDate = mesSelDate ? new Date(mesSelDate.getFullYear(), mesSelDate.getMonth(), 1)
                             : new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  ensureCorteCss();
   document.getElementById('modalCorte').style.display = 'block';
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('mz-print-corte');   // en @media print solo se imprime el informe
   renderCorte();
 }
 function cerrarCorte(){
   document.getElementById('modalCorte').style.display = 'none';
   document.body.style.overflow = '';
+  document.body.classList.remove('mz-print-corte');
 }
 function cambiarMesCorte(delta){
   corteMesDate = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+delta, 1);
@@ -2273,93 +2363,171 @@ function corteMesLabel(){ return `${MES[corteMesDate.getMonth()]} ${corteMesDate
 
 function corteDatos(){
   const ub = corteUb, mes = corteMesStr();
-  const integrales = C.filter(c => c.ub === ub && esIntegral(c))
-    .sort((a,b)=> String(a.u).localeCompare(String(b.u)));
-  const idsInt = new Set(integrales.map(c=>c.id));
-  // INGRESOS: pagos cobrados en el mes (fecha de pago) de contratos integrales
-  const ingresos = PAGOS.filter(p => idsInt.has(Number(p.cid)) && String(toDateInput(p.fecha)).slice(0,7) === mes)
+  // Todos los departamentos del inmueble, en orden natural
+  const contratos = C.filter(c => c.ub === ub).sort(cmpDepto);
+  const ids = new Set(contratos.map(c=>c.id));
+  // INGRESOS: pagos cobrados en el mes (fecha de pago). Comisión = pctComision del contrato.
+  const ingresos = PAGOS.filter(p => ids.has(Number(p.cid)) && String(toDateInput(p.fecha)).slice(0,7) === mes)
     .map(p => {
       const c = C.find(x=>x.id===Number(p.cid));
       const pct = Number(c.pctComision) || 0;
       const monto = Number(p.monto) || 0;
-      return {cid:c.id, u:c.u, inq:c.inq, fecha:toDateInput(p.fecha), periodo:String(p.periodo||'').slice(0,7),
+      return {cid:c.id, u:c.u, inq:c.inq, estatus:estatusDe(c), fecha:toDateInput(p.fecha), periodo:String(p.periodo||'').slice(0,7),
               monto, pct, comision: Math.round(monto*pct)/100};
     })
-    .sort((a,b)=> String(a.u).localeCompare(String(b.u)) || a.fecha.localeCompare(b.fecha));
+    .sort((a,b)=> cmpDepto(a,b) || a.fecha.localeCompare(b.fecha));
   const totalIngresos = ingresos.reduce((s,i)=>s+i.monto, 0);
   const totalComision = Math.round(ingresos.reduce((s,i)=>s+i.comision, 0)*100)/100;
-  // Deptos integrales SIN cobro en el mes (incluye vacantes/juicio) — panorama completo
-  const sinCobro = integrales.filter(c => !ingresos.some(i => i.cid === c.id))
+  const pcts = [...new Set(contratos.map(c=>Number(c.pctComision)||0).filter(p=>p>0))];
+  // Filas de "Pagos recibidos": una por pago; deptos sin cobro → una fila en $0
+  const filasPagos = [];
+  contratos.forEach(c => {
+    const pagosC = ingresos.filter(i => i.cid === c.id);
+    const est = estatusDe(c);
+    if(pagosC.length) pagosC.forEach(p => filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, monto:p.monto, pago:true}));
+    else filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', monto:0, pago:false});
+  });
+  const sinCobro = contratos.filter(c => !ingresos.some(i => i.cid === c.id))
     .map(c => ({u:c.u, inq:c.inq, estatus:estatusDe(c)}));
   // EGRESOS
   const gastos = gastosDe(ub, mes);
   const totalGastos = gastos.reduce((s,g)=>s+(Number(g.monto)||0), 0);
   const neto = Math.round((totalIngresos - totalGastos - totalComision)*100)/100;
-  const props = [...new Set(integrales.map(c=>c.prop).filter(Boolean))];
-  return {ub, mes, integrales, ingresos, sinCobro, totalIngresos, totalComision, gastos, totalGastos, neto,
-          propietario: props.join(', ') || '—'};
+  // SALDO POR DEPARTAMENTO al cierre del mes: cargos hasta el mes del corte y
+  // pagos hasta el último día del mes (motor FIFO con adeudoIni y regla de vacante).
+  const finMes = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+1, 0);
+  const saldos = contratos.map(c => {
+    const ec = calcularEstadoCuenta(c, corteMesDate, finMes);
+    const sobrante = Math.max(0, Math.round((ec.totalPagado - ec.rentaCubierta - ec.moraCubierta)*100)/100);
+    const saldo = Math.round((ec.saldoRenta - sobrante)*100)/100;   // >0 adeudo · <0 a favor
+    return {u:c.u, inq:c.inq, estatus:estatusDe(c), renta:ec.renta, saldo};
+  });
+  const totalAdeudo = saldos.reduce((s,x)=>s+(x.saldo>0?x.saldo:0), 0);
+  const totalFavor  = saldos.reduce((s,x)=>s+(x.saldo<0?-x.saldo:0), 0);
+  const props = [...new Set(contratos.map(c=>c.prop).filter(Boolean))];
+  return {ub, mes, contratos, ingresos, filasPagos, sinCobro, totalIngresos, totalComision, pcts,
+          gastos, totalGastos, neto, saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—'};
 }
 
 function corteBodyHTML(d){
-  const th = 'background:#0F2027;color:#e8c97a;padding:8px;text-align:left;font-size:11px;';
-  const S  = 'font-family:Orbitron,Arial,sans-serif;font-size:13px;color:#0F2027;font-weight:bold;border-bottom:2px solid #6d5a2e;padding-bottom:4px;margin:22px 0 8px;';
-  const td = 'padding:6px 8px;border-bottom:1px solid #eee;';
-  const tagEst = e => e==='vacante' ? ' <span style="font-size:10px;color:#777;font-weight:bold;">🔲 VACANTE</span>'
-                : e==='juicio' ? ' <span style="font-size:10px;color:#7d3c98;font-weight:bold;">⚖️ EN JUICIO</span>' : '';
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Montos: sin decimales si es entero; con 2 decimales si trae centavos
+  const fM2 = n => '$' + Number(n||0).toLocaleString('es-MX', {minimumFractionDigits: Number.isInteger(Number(n||0)) ? 0 : 2, maximumFractionDigits: 2});
+  // Inquilino: vacante → vacío (solo etiqueta); juicio → nombre + etiqueta
+  const inqCell = f => f.estatus==='vacante' ? '<span class="tag vac">🔲 VACANTE</span>'
+                    : f.estatus==='juicio'  ? `${esc(f.inq)}<span class="tag juicio">⚖️ EN JUICIO</span>`
+                    : esc(f.inq);
+  const perLabel = p => p && /^\d{4}-\d{2}$/.test(p) ? `${MES3[+p.slice(5,7)-1]} ${p.slice(0,4)}` : p;
+  const head = titulo => `
+    <div class="mz-head">
+      <img src="data:image/jpeg;base64,${LOGO_B64}" alt="Moctezuma">
+      <div class="mz-marca">MOCTEZUMA<small>ADMINISTRADORA INTELIGENTE ✦✦</small></div>
+      <div class="mz-titulo"><b>${titulo}</b><span>${esc(d.ub)} · ${corteMesLabel()}</span></div>
+    </div>`;
+  const foot = `<div class="mz-foot">Moctezuma Administradora Inteligente · moctezuma.adm@gmail.com · 5566709577 · www.administradoramoctezuma.com</div>`;
 
-  const ingresoRows = d.ingresos.map(i =>
-    `<tr><td style="${td}">${i.u}</td><td style="${td}">${i.inq}</td><td style="${td}">${fF(i.fecha)}</td>
-     <td style="${td}">${i.periodo||''}</td><td style="${td}text-align:right;">${fM(i.monto)}</td>
-     <td style="${td}text-align:right;color:#8a6d00;">${i.pct?`${i.pct}% · ${fM(i.comision)}`:'—'}</td></tr>`).join('')
-    + d.sinCobro.map(s =>
-    `<tr style="background:#fafafa;"><td style="${td}">${s.u}</td><td style="${td}">${s.inq}${tagEst(s.estatus)}</td>
-     <td style="${td}" colspan="2"><span style="color:#999;">Sin cobro en el mes</span></td>
-     <td style="${td}text-align:right;color:#999;">${fM(0)}</td><td style="${td}"></td></tr>`).join('');
+  // ── Pagos recibidos ──
+  const pagosRows = d.filasPagos.map(f => `
+    <tr class="${f.pago?'ok':'bad'}">
+      <td><b>${esc(f.u)}</b></td>
+      <td>${inqCell(f)}</td>
+      <td>${f.pago ? `${fF(f.fecha)}${f.periodo?`<span class="sub">Renta de ${perLabel(f.periodo)}</span>`:''}` : '—'}</td>
+      <td class="num">${fM2(f.monto)}</td>
+    </tr>`).join('') || `<tr><td colspan="4" class="vacio">Sin contratos en este inmueble</td></tr>`;
 
+  // ── Gastos ──
   const gastoRows = d.gastos.length ? d.gastos.map(g => {
     const c = g.contratoId ? C.find(x=>x.id===Number(g.contratoId)) : null;
-    return `<tr><td style="${td}">${g.fecha?fF(g.fecha):''}</td><td style="${td}">${g.categoria||'otros'}</td>
-      <td style="${td}">${g.concepto}${g.nota?` <span style="font-size:10px;color:#999;">(${g.nota})</span>`:''}</td>
-      <td style="${td}">${c?c.u:'General'}</td><td style="${td}text-align:right;">${fM(g.monto)}</td></tr>`;
-  }).join('') : `<tr><td colspan="5" style="text-align:center;color:#999;padding:10px;">Sin gastos registrados en este periodo</td></tr>`;
+    return `<tr>
+      <td>${g.fecha?fF(g.fecha):'—'}</td>
+      <td>${esc(g.concepto)}<span class="sub">${esc(g.categoria||'otros')}${g.nota?` · ${esc(g.nota)}`:''}</span></td>
+      <td>${c?esc(c.u):'General'}</td>
+      <td class="num">${fM2(Number(g.monto)||0)}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="4" class="vacio">Sin gastos registrados en este periodo</td></tr>`;
+
+  const comLabel = d.pcts.length===1 ? `Comisión ${d.pcts[0]} %` : 'Comisión de administración';
+
+  // ── Saldo por departamento ──
+  const saldoRows = d.saldos.map(s => {
+    const cls = s.saldo > 0.01 ? 'rojo' : 'verde';
+    const txt = s.saldo > 0.01 ? fM2(s.saldo) : s.saldo < -0.01 ? `${fM2(-s.saldo)} a favor` : fM2(0);
+    return `<tr>
+      <td><b>${esc(s.u)}</b></td>
+      <td>${inqCell(s)}</td>
+      <td class="num">${s.estatus==='vacante'?'—':fM2(s.renta)}</td>
+      <td class="num ${cls}">${txt}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="4" class="vacio">Sin contratos en este inmueble</td></tr>`;
+
+  const mtto = MTTO_INCLUIDO[d.ub];
+  const aviso = mtto && d.mes < mtto.cobrarDesde
+    ? `<div class="mz-aviso">⚠️ No incluye la cuota de mantenimiento de ${fM2(mtto.monto)}/depto (se cobra a partir de ${mtto.cobrarDesde}). No se aplica pena moratoria en este informe.</div>` : '';
 
   return `
-  <div style="font-size:12px;color:#555;margin-bottom:6px;">
-    <b style="font-size:15px;color:#0F2027;">${d.ub} — Corte mensual al propietario</b><br>
-    Propietario/a: <b>${d.propietario}</b> · Periodo: <b>${corteMesLabel()}</b><br>
-    Administradora Moctezuma · Emitido: ${fF(new Date().toISOString().slice(0,10))}<br>
-    <span style="font-size:11px;color:#888;">Base caja: se reportan los pagos COBRADOS en el mes (columna "Renta de" indica a qué mes corresponde cada pago). Solo contratos en administración integral.</span>
+  <div class="mz-hoja mz-hoja1">
+    ${head('INFORME MENSUAL DE RENTAS')}
+    <div class="mz-meta">
+      <span>Propietario/a: <b>${esc(d.propietario)}</b></span>
+      <span>Periodo: <b>${corteMesLabel()}</b></span>
+      <span>Emitido: <b>${fF(new Date().toISOString().slice(0,10))}</b></span>
+    </div>
+    <div class="mz-nota">Base caja: se reportan los pagos cobrados dentro del mes, sin importar a qué renta correspondan.</div>
+    ${aviso}
+
+    <h2>Pagos recibidos</h2>
+    <table>
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha de pago</th><th class="num">Cantidad pagada</th></tr></thead>
+      <tbody>${pagosRows}</tbody>
+      <tfoot><tr><td colspan="3" class="num">TOTAL DE INGRESOS DEL MES</td><td class="num">${fM2(d.totalIngresos)}</td></tr></tfoot>
+    </table>
+
+    <h2>Gastos</h2>
+    <table>
+      <thead><tr><th>Fecha</th><th>Concepto / Categoría</th><th>Departamento</th><th class="num">Monto</th></tr></thead>
+      <tbody>${gastoRows}</tbody>
+      <tfoot><tr><td colspan="3" class="num">TOTAL DE GASTOS</td><td class="num">${fM2(d.totalGastos)}</td></tr></tfoot>
+    </table>
+
+    <h2>Liquidación</h2>
+    <table class="mz-liq">
+      <tr><td>Total cobrado</td><td class="num">${fM2(d.totalIngresos)}</td></tr>
+      <tr><td>(−) Gastos</td><td class="num rojo">−${fM2(d.totalGastos)}</td></tr>
+      <tr><td>(−) ${comLabel}</td><td class="num rojo">−${fM2(d.totalComision)}</td></tr>
+      <tr class="neto"><td>NETO A ENTREGAR AL PROPIETARIO</td><td class="num">${fM2(d.neto)}</td></tr>
+    </table>
+
+    <div class="mz-firma">
+      <div class="linea"></div>
+      <b>Lic. Ángel Moctezuma</b>
+      <span>Moctezuma Administradora Inteligente</span>
+    </div>
+    ${foot}
   </div>
 
-  <div style="${S}">1 · Ingresos cobrados del mes</div>
-  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
-    <th style="${th}">Depto</th><th style="${th}">Inquilino</th><th style="${th}">Fecha cobro</th><th style="${th}">Renta de</th>
-    <th style="${th}text-align:right;">Cobrado</th><th style="${th}text-align:right;">Comisión</th>
-  </tr></thead><tbody>${ingresoRows}</tbody>
-  <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;padding:8px;">Total cobrado:</td>
-    <td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalIngresos)}</td>
-    <td style="text-align:right;font-weight:bold;padding:8px;color:#8a6d00;">${fM(d.totalComision)}</td></tr></tfoot></table>
+  <div class="mz-hoja mz-hoja2">
+    <div class="mz-hoja2-lbl">Hoja 2</div>
+    ${head('SALDO POR DEPARTAMENTO')}
+    <div class="mz-meta">
+      <span>Propietario/a: <b>${esc(d.propietario)}</b></span>
+      <span>Saldos al cierre de: <b>${corteMesLabel()}</b></span>
+    </div>
+    <div class="mz-nota">Adeudo = rentas vencidas no cubiertas al cierre del mes (incluye saldo inicial). A favor = renta adelantada. Los departamentos entregados no generan cargos desde su desocupación, pero conservan su adeudo.</div>
 
-  <div style="${S}">2 · Egresos del mes (gastos pagados por cuenta del propietario)</div>
-  <table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>
-    <th style="${th}">Fecha</th><th style="${th}">Categoría</th><th style="${th}">Concepto</th><th style="${th}">Depto</th><th style="${th}text-align:right;">Monto</th>
-  </tr></thead><tbody>${gastoRows}</tbody>
-  <tfoot><tr><td colspan="4" style="text-align:right;font-weight:bold;padding:8px;">Total egresos:</td>
-    <td style="text-align:right;font-weight:bold;padding:8px;">${fM(d.totalGastos)}</td></tr></tfoot></table>
-
-  <div style="${S}">3 · Liquidación</div>
-  <table style="width:100%;border-collapse:collapse;font-size:13px;max-width:420px;">
-    <tr><td style="padding:6px 8px;">(+) Rentas cobradas</td><td style="text-align:right;padding:6px 8px;">${fM(d.totalIngresos)}</td></tr>
-    <tr><td style="padding:6px 8px;">(−) Gastos</td><td style="text-align:right;padding:6px 8px;color:#c0392b;">−${fM(d.totalGastos)}</td></tr>
-    <tr><td style="padding:6px 8px;">(−) Honorarios de administración</td><td style="text-align:right;padding:6px 8px;color:#c0392b;">−${fM(d.totalComision)}</td></tr>
-    <tr style="border-top:2px solid #6d5a2e;font-weight:bold;font-size:15px;">
-      <td style="padding:10px 8px;">NETO A ENTREGAR AL PROPIETARIO</td>
-      <td style="text-align:right;padding:10px 8px;color:${d.neto>=0?'#1a8a3b':'#c0392b'};">${fM(d.neto)}</td></tr>
-  </table>`;
+    <h2>Saldo por departamento</h2>
+    <table>
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th class="num">Renta mensual</th><th class="num">Saldo al cierre</th></tr></thead>
+      <tbody>${saldoRows}</tbody>
+      <tfoot><tr><td colspan="3" class="num">ADEUDO TOTAL${d.totalFavor>0.01?` · A FAVOR ${fM2(d.totalFavor)}`:''}</td><td class="num ${d.totalAdeudo>0.01?'rojo':'verde'}">${fM2(d.totalAdeudo)}</td></tr></tfoot>
+    </table>
+    ${foot}
+  </div>
+  <div class="mz-foot mz-foot-print">Moctezuma Administradora Inteligente · moctezuma.adm@gmail.com · 5566709577 · www.administradoramoctezuma.com</div>`;
 }
 
 function renderCorte(){
-  document.getElementById('corteTitulo').textContent = `💼 CORTE MENSUAL — ${corteUb}`;
+  ensureCorteCss();
+  document.getElementById('corteTitulo').textContent = `💼 INFORME MENSUAL — ${corteUb}`;
   document.getElementById('corteMesLabel').textContent = corteMesLabel();
   document.getElementById('corteBody').innerHTML = corteBodyHTML(corteDatos());
 }
@@ -2368,12 +2536,23 @@ function imprimirCorte(){
   const d = corteDatos();
   const w = window.open('','_blank');
   if(!w){ toast('El navegador bloqueó la ventana de impresión — permite las ventanas emergentes','error'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Corte ${d.ub} — ${corteMesLabel()}</title>
-    <style>@page{size:letter;margin:1.6cm 2cm;}body{font-family:Arial,sans-serif;color:#000;font-size:12px;}h1{color:#0F2027;font-size:17px;border-bottom:2px solid #6d5a2e;padding-bottom:6px;}table{margin-bottom:6px;}</style></head><body>
-    <h1>Corte mensual al propietario — Moctezuma Administradora</h1>
-    ${corteBodyHTML(d)}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe ${d.ub} — ${corteMesLabel()}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      @page{size:letter;margin:15mm;}
+      html,body{margin:0;padding:0;background:#fff;}
+      body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+      @media print{ body{padding-bottom:12mm;} }
+      @media screen{ body{padding:20px;max-width:186mm;margin:0 auto;} }
+      ${CORTE_CSS}
+    </style></head><body>
+    <div class="mz-inf">${corteBodyHTML(d)}</div>
     </body></html>`);
-  w.document.close(); setTimeout(()=>w.print(),400);
+  w.document.close();
+  let impreso = false;
+  const go = () => { if(impreso) return; impreso = true; try{ w.focus(); w.print(); }catch(e){} };
+  try { if(w.document.fonts && w.document.fonts.ready) w.document.fonts.ready.then(()=>setTimeout(go,150)); } catch(e){}
+  setTimeout(go, 1500);
 }
 
 // ===== COMUNICADOS =====
