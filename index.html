@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34r</title>
+<title>Moctezuma — Control de Arrendamientos v34s</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -199,7 +199,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34r · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34s · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -1042,7 +1042,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34r — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34s — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1177,7 +1177,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34r · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34s · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1548,15 +1548,29 @@ function gastosDe(ub, mes){
 
 // ── Sección Gastos (UI) ──
 let gastosUIListo = false;
-function initGastosUI(){
+// Llena #gUb y #gFiltUb con las ubicaciones vigentes de C (se invoca en cada renderGastos,
+// porque C se reemplaza cuando llegan los contratos del Sheet). Conserva la selección actual si sigue existiendo.
+function llenarUbicacionesGasto(){
   const sel = document.getElementById('gUb');
-  if(!sel) return;
+  const filt = document.getElementById('gFiltUb');
+  if(!sel || !filt) return;
   const ubs = [...new Set(C.map(c=>c.ub))].sort();
-  sel.innerHTML = ubs.map(u=>`<option>${u}</option>`).join('');
-  document.getElementById('gFiltUb').innerHTML = '<option value="">Todos los inmuebles</option>' + ubs.map(u=>`<option>${u}</option>`).join('');
+  const opts = ubs.map(u=>`<option>${u}</option>`).join('');
+  const selPrev = sel.value, filtPrev = filt.value;
+  sel.innerHTML = opts;
+  filt.innerHTML = '<option value="">Todos los inmuebles</option>' + opts;
+  if(selPrev && ubs.includes(selPrev)) sel.value = selPrev;
+  if(filtPrev && ubs.includes(filtPrev)) filt.value = filtPrev;
+  // Refrescar deptos del inmueble seleccionado conservando el depto elegido si aún existe
+  const cid = document.getElementById('gCid');
+  const cidPrev = cid ? cid.value : '';
+  llenarDeptosGasto();
+  if(cid && cidPrev && [...cid.options].some(o=>o.value===cidPrev)) cid.value = cidPrev;
+}
+function initGastosUI(){
+  if(!document.getElementById('gUb')) return;
   document.getElementById('gFecha').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
   document.getElementById('gFiltMes').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
-  llenarDeptosGasto();
   gastosUIListo = true;
 }
 function llenarDeptosGasto(){
@@ -1590,6 +1604,7 @@ function renderGastos(){
   const body = document.getElementById('gastosBody');
   if(!body) return;
   if(!gastosUIListo) initGastosUI();
+  llenarUbicacionesGasto();
   const fu = document.getElementById('gFiltUb').value;
   const fm = document.getElementById('gFiltMes').value;
   const fc = document.getElementById('gFiltCat').value;
