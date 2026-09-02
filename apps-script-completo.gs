@@ -3,6 +3,8 @@
 // Google Apps Script — v34p (Web App + Permisos + Auditoría + Pagos + Gastos)
 // ═══════════════════════════════════════════════════════
 
+const SCRIPT_VERSION = 'v34p';
+
 const SHEET_NAME   = 'Contratos';
 const ACCESO_SHEET = 'ACCESO';
 const AUDIT_SHEET  = 'AUDITORIA';
@@ -28,10 +30,34 @@ function doGet(e) {
   let result;
 
   try {
+    // Esquema mínimo (pestaña GASTOS + columnas modoAdmin/pctComision).
+    // Idempotente; si falla no debe bloquear la acción solicitada.
+    let schemaInfo = null;
+    try { schemaInfo = ensureSchema_(); } catch(e) { schemaInfo = { error: e.message }; }
+
     switch(action) {
       case 'ping':
-        result = { ok: true, version: 'v34-webapp', timestamp: new Date().toISOString() };
+        result = {
+          ok: true,
+          version: SCRIPT_VERSION,
+          pestanas: SpreadsheetApp.getActiveSpreadsheet().getSheets().map(s => s.getName()),
+          timestamp: new Date().toISOString()
+        };
         break;
+      case 'setup': {
+        const ss = SpreadsheetApp.getActiveSpreadsheet();
+        const contratos = ss.getSheetByName(SHEET_NAME);
+        result = {
+          ok: true,
+          version: SCRIPT_VERSION,
+          schema: schemaInfo,
+          pestanas: ss.getSheets().map(s => s.getName()),
+          encabezadosContratos: contratos && contratos.getLastColumn() > 0
+            ? contratos.getRange(1, 1, 1, contratos.getLastColumn()).getValues()[0]
+            : []
+        };
+        break;
+      }
       case 'getAll':
         result = getAllContratos();
         break;
@@ -262,6 +288,38 @@ function deletePago(d) {
   return { ok: false, error: 'Pago no encontrado' };
 }
 
+
+// Garantiza el esquema que necesita v34p: pestaña GASTOS con su fila 1, y
+// encabezados modoAdmin/pctComision en la fila 1 de Contratos (buscados por
+// nombre, no por letra de columna). Idempotente: se ejecuta en cada doGet y
+// no toca ninguna otra pestaña ni filas de datos.
+function ensureSchema_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const info = { gastosCreada: false, columnasAgregadas: [] };
+
+  if (!ss.getSheetByName(GASTOS_SHEET)) {
+    const sheet = ss.insertSheet(GASTOS_SHEET);
+    const headers = ['id','fecha','ubicacion','contratoId','categoria','concepto','monto','comprobante','nota','usuario','timestamp'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setBackground('#0F2027').setFontColor('#7BADA8').setFontWeight('bold');
+    sheet.getRange('B:B').setNumberFormat('@'); // fechas como texto plano
+    info.gastosCreada = true;
+  }
+
+  const contratos = ss.getSheetByName(SHEET_NAME);
+  if (contratos && contratos.getLastColumn() > 0) {
+    const fila1 = contratos.getRange(1, 1, 1, contratos.getLastColumn()).getValues()[0];
+    ['modoAdmin','pctComision'].forEach(h => {
+      if (fila1.indexOf(h) >= 0) return;
+      const vacia = fila1.indexOf('');
+      const col = (vacia >= 0) ? vacia + 1 : fila1.length + 1; // primera columna vacía de la fila 1
+      contratos.getRange(1, col).setValue(h);
+      fila1[col - 1] = h;
+      info.columnasAgregadas.push(h);
+    });
+  }
+  return info;
+}
 
 // Agrega a la hoja Contratos los encabezados que falten (idempotente: si ya
 // existen no hace nada). Se invoca con ?action=migrar tras actualizar la app.
