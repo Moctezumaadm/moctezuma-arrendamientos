@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34t</title>
+<title>Moctezuma — Control de Arrendamientos v34u</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34t · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34u · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -1045,14 +1045,20 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
       <button onclick="cambiarMesCorte(-1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">◀</button>
       <b id="corteMesLabel" style="min-width:130px;text-align:center;color:#0F2027;"></b>
       <button onclick="cambiarMesCorte(1)" style="border:1px solid #cbd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;">▶</button>
+      <label id="corteCierreWrap" title="Marca el mes como cerrado y entregado al propietario; congela el saldo final del corte" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#0F2027;cursor:pointer;margin-left:8px;user-select:none;">
+        <input type="checkbox" id="corteCierreChk" onchange="toggleCierreCorte(this)" style="width:15px;height:15px;cursor:pointer;margin:0;">
+        Mes cerrado y entregado al propietario
+      </label>
+      <span id="corteCierreEstado" style="font-size:11px;font-weight:bold;color:#1E7B4F;"></span>
       <button onclick="imprimirCorte()" style="margin-left:auto;background:#3D7A75;color:#fff;border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:bold;">🖨️ Imprimir / Guardar PDF</button>
     </div>
+    <div id="corteCierreNota" class="mz-noprint" style="display:none;padding:6px 24px;background:#FBE4E4;color:#B03A2E;font-size:11.5px;border-bottom:1px solid #f1c9c9;"></div>
     <div class="mz-inf" style="padding:22px 24px;color:#1A1A2E;" id="corteBody"></div>
   </div>
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34t — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34u — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1187,7 +1193,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34t · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34u · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1239,6 +1245,9 @@ const hoy=new Date();
 
 const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MES3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+// 'AAAA-MM' (o fecha) → "Mayo 2026"; cualquier otro texto se devuelve tal cual
+const perLargo = p => { p = String(p||'').slice(0,7); return /^\d{4}-\d{2}$/.test(p) ? `${MES[+p.slice(5,7)-1]} ${p.slice(0,4)}` : p; };
+const r2 = n => Math.round((Number(n)||0)*100)/100;
 function dias(s){return Math.ceil((parseFecha(s)-hoy)/86400000);}
 function fF(s){if(!s)return'—';s=String(s).slice(0,10);const[y,m,d]=s.split('-');return`${d} ${MES3[+m-1]} ${y}`;}
 function fM(n){return'$'+n.toLocaleString('es-MX');}
@@ -1525,35 +1534,67 @@ async function cargarGastos(){
   if(SHEETS_URL && sheetsConectado){
     try {
       const d = await jsonpFetch(SHEETS_URL + '?action=getGastos');
-      if(Array.isArray(d)){ GASTOS = d.map(migrarGasto); persistGastosLocal(); }
+      if(Array.isArray(d)){ GASTOS = d.map(migrarGasto); persistGastosLocal(); corteInvalidarCache(); }
     } catch(e){ console.warn('Carga de gastos falló (usa local):', e.message); }
   }
 }
-function guardarGasto(g){
+function guardarGasto(g, accionAudit){
   GASTOS.push(g);
   persistGastosLocal();
-  registrarAuditoria('GASTO_REGISTRADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.categoria} — ${g.concepto} — ${fM(g.monto)}`);
+  corteInvalidarCache(g.ubicacion);
+  registrarAuditoria(accionAudit || 'GASTO_REGISTRADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.categoria} — ${g.concepto} — ${fM(g.monto)}`);
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=saveGasto&data=' + encodeURIComponent(JSON.stringify(g)) + '&user=' + encodeURIComponent(currentUser))
       .catch(err => console.warn('saveGasto Sheets error:', err.message));
   }
 }
-function eliminarGastoData(id){
+function eliminarGastoData(id, accionAudit){
   const idx = GASTOS.findIndex(g => String(g.id) === String(id));
   if(idx < 0) return null;
   const g = GASTOS[idx];
   GASTOS.splice(idx, 1);
   persistGastosLocal();
-  registrarAuditoria('GASTO_ELIMINADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.concepto} — ${fM(g.monto)}`);
+  corteInvalidarCache(g.ubicacion);
+  registrarAuditoria(accionAudit || 'GASTO_ELIMINADO', Number(g.contratoId)||0, `${g.ubicacion} — ${g.concepto} — ${fM(g.monto)}`);
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=deleteGasto&data=' + encodeURIComponent(JSON.stringify({id:id})) + '&user=' + encodeURIComponent(currentUser))
       .catch(err => console.warn('deleteGasto Sheets error:', err.message));
   }
   return g;
 }
+// Gastos REALES de un inmueble en un mes (excluye los registros CIERRE_CORTE).
 function gastosDe(ub, mes){
-  return GASTOS.filter(g => g.ubicacion === ub && String(g.fecha||'').slice(0,7) === mes)
+  return GASTOS.filter(g => !esCierreCorte(g) && g.ubicacion === ub && String(g.fecha||'').slice(0,7) === mes)
     .sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
+}
+
+// ── Cierres de corte ──
+// Un mes "cerrado y entregado al propietario" se persiste SIN tocar el backend
+// como un registro en GASTOS con categoria = 'CIERRE_CORTE'. NO es un gasto real:
+// gastosDe(), renderGastos() y los informes lo excluyen; solo el motor del corte lo lee.
+// Campos: fecha = fecha de cierre · monto = saldo final congelado · contratoId = ''
+// concepto = 'Cierre corte AAAA-MM' · nota = JSON {periodo, saldoFinal, usuario, cerradoEl}
+const CAT_CIERRE_CORTE = 'CIERRE_CORTE';
+function esCierreCorte(g){ return !!g && String(g.categoria||'').toUpperCase() === CAT_CIERRE_CORTE; }
+function cierreInfo(g){
+  let n = {};
+  try { n = JSON.parse(g.nota || '{}'); } catch(e){ n = {}; }
+  if(!n || typeof n !== 'object') n = {};
+  let periodo = String(n.periodo || '').slice(0,7);
+  if(!/^\d{4}-\d{2}$/.test(periodo)){ const m = String(g.concepto||'').match(/(\d{4}-\d{2})/); periodo = m ? m[1] : ''; }
+  const sf = (n.saldoFinal !== undefined && n.saldoFinal !== null && n.saldoFinal !== '') ? Number(n.saldoFinal) : Number(g.monto);
+  return { periodo, saldoFinal: Number.isFinite(sf) ? r2(sf) : 0, usuario: n.usuario || g.usuario || '',
+           cerradoEl: n.cerradoEl || g.timestamp || '', fecha: toDateInput(g.fecha) || String(n.cerradoEl||'').slice(0,10) };
+}
+function cierreDe(ub, mes){
+  return GASTOS.find(g => esCierreCorte(g) && g.ubicacion === ub && cierreInfo(g).periodo === mes) || null;
+}
+function mesCerrado(ub, mes){ return !!cierreDe(ub, mes); }
+// Candado suave: avisa (no bloquea) cuando un movimiento toca un mes ya cerrado del inmueble.
+function confirmarSiMesCerrado(ub, meses){
+  const cerrados = [...new Set((meses||[]).map(m => String(toDateInput(m) || m || '').slice(0,7)).filter(Boolean))].filter(m => mesCerrado(ub, m));
+  if(!cerrados.length) return true;
+  return confirm(`Ese mes ya está cerrado. Editar sus movimientos NO recalcula el corte cerrado. ¿Continuar?\n\n(${ub} · ${cerrados.map(perLargo).join(', ')})`);
 }
 
 // ── Sección Gastos (UI) ──
@@ -1596,6 +1637,7 @@ function registrarGastoUI(){
   const concepto = document.getElementById('gConcepto').value.trim();
   const monto = Number(document.getElementById('gMonto').value);
   if(!fecha || !ubicacion || !concepto || !(monto>0)){ toast('Completa fecha, inmueble, concepto y un monto válido','warn'); return; }
+  if(!confirmarSiMesCerrado(ubicacion, [fecha])) return;
   guardarGasto({
     id:'g'+Date.now()+Math.floor(Math.random()*1000),
     fecha, ubicacion,
@@ -1619,6 +1661,7 @@ function renderGastos(){
   const fm = document.getElementById('gFiltMes').value;
   const fc = document.getElementById('gFiltCat').value;
   const arr = GASTOS.filter(g =>
+      !esCierreCorte(g) &&
       (!fu || g.ubicacion === fu) &&
       (!fm || String(g.fecha||'').slice(0,7) === fm) &&
       (!fc || g.categoria === fc))
@@ -1645,6 +1688,8 @@ function renderGastos(){
 function eliminarGastoUI(id){
   if(currentRole!=='Administrador'){ toast('Solo el Administrador puede eliminar gastos','error'); return; }
   if(!confirm('¿Eliminar este gasto?')) return;
+  const gDel = GASTOS.find(g => String(g.id) === String(id));
+  if(gDel && !confirmarSiMesCerrado(gDel.ubicacion, [gDel.fecha])) return;
   eliminarGastoData(id);
   renderGastos();
   toast('🗑️ Gasto eliminado','warn');
@@ -1966,7 +2011,9 @@ function guardarPago(e){
     usuario: currentUser,
     timestamp: new Date().toISOString()
   };
+  if(!confirmarSiMesCerrado(c.ub, [pago.fecha, pago.periodo])) return;
   PAGOS.push(pago);
+  corteInvalidarCache(c.ub);
   cerrarRegistroPago();
   registrarAuditoria('PAGO_REGISTRADO', cid, `${c.inq} — ${pago.periodo} — ${fM(pago.monto)}`);
   renderPagos();
@@ -2078,7 +2125,10 @@ function eliminarPago(cid, timestamp){
   const idx = PAGOS.findIndex(p => Number(p.cid)===Number(cid) && p.timestamp===timestamp);
   if(idx<0) return;
   const pago = PAGOS[idx];
+  const cPago = C.find(x=>x.id===Number(cid));
+  if(cPago && !confirmarSiMesCerrado(cPago.ub, [pago.fecha, pago.periodo])) return;
   PAGOS.splice(idx,1);
+  corteInvalidarCache(cPago ? cPago.ub : '');
   registrarAuditoria('PAGO_ELIMINADO', cid, `${pago.periodo} — ${fM(pago.monto)}`);
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=deletePago&data=' + encodeURIComponent(JSON.stringify({cid:cid,timestamp:timestamp})) + '&user=' + encodeURIComponent(currentUser))
@@ -2237,6 +2287,7 @@ function agregarGastoReporte(){
   const monto = Number(document.getElementById('repGMonto').value);
   const fecha = document.getElementById('repGFecha').value || (repMesStr()+'-01');
   if(!concepto || !(monto>0)){ toast('Escribe un concepto y un monto válido','warn'); return; }
+  if(!confirmarSiMesCerrado(repUb, [fecha])) return;
   guardarGasto({ id:'g'+Date.now()+Math.floor(Math.random()*1000), fecha, ubicacion:repUb, contratoId:'', categoria:'otros', concepto, monto, comprobante:'', nota:'', usuario:currentUser, timestamp:new Date().toISOString() });
   renderReporte();
   toast('✅ Gasto registrado','success');
@@ -2244,6 +2295,8 @@ function agregarGastoReporte(){
 function eliminarGastoReporte(id){
   if(currentRole!=='Administrador'){ toast('Solo el Administrador puede eliminar gastos','error'); return; }
   if(!confirm('¿Eliminar este gasto?')) return;
+  const gDel = GASTOS.find(g => String(g.id) === String(id));
+  if(gDel && !confirmarSiMesCerrado(gDel.ubicacion, [gDel.fecha])) return;
   eliminarGastoData(id);
   renderReporte();
   toast('🗑️ Gasto eliminado','warn');
@@ -2264,6 +2317,136 @@ function imprimirReporte(){
 // Ingresos por FECHA DE COBRO (base caja: lo que entró en el mes se entrega en
 // ese corte, aunque el pago corresponda a rentas de meses anteriores).
 let corteUb = '', corteMesDate = null;
+
+// ── Motor de arrastre entre meses (saldo inicial / saldo final / cierres) ──
+// Regla: saldoInicial(M) = f(saldoFinal(M−1), cerrado(M−1))
+//   · saldoFinal(M−1) < 0  → se arrastra íntegro (esté cerrado o no)
+//   · saldoFinal(M−1) >= 0 → cerrado: 0 (ya se entregó) · abierto: se arrastra el positivo
+// Un mes cerrado usa su saldo final CONGELADO (registro CIERRE_CORTE), no el recalculado.
+// El recorrido hacia atrás se detiene en el primer mes cerrado (ancla) o antes del
+// primer mes con actividad del inmueble; nunca recalcula desde el origen.
+// Cache por inmueble dentro de la sesión (se invalida al mover pagos/gastos/cierres).
+let corteCache = {};
+function corteInvalidarCache(ub){ if(ub) delete corteCache[ub]; else corteCache = {}; }
+function corteMesKey(y, m){ return `${y}-${String(m+1).padStart(2,'0')}`; }   // m: 0-11
+function corteMesAnterior(y, m){ return m === 0 ? [y-1, 11] : [y, m-1]; }
+function corteCacheDe(ub){ return corteCache[ub] || (corteCache[ub] = {meses:{}, primero:undefined}); }
+// Primer mes con actividad del inmueble (pagos, gastos reales o cierres), 'AAAA-MM' o ''.
+function cortePrimerMes(ub){
+  const cache = corteCacheDe(ub);
+  if(cache.primero !== undefined) return cache.primero;
+  const ids = new Set(C.filter(c => c.ub === ub).map(c => c.id));
+  let min = '';
+  const tomar = s => { s = String(s||'').slice(0,7); if(/^\d{4}-\d{2}$/.test(s) && (!min || s < min)) min = s; };
+  PAGOS.forEach(p => { if(ids.has(Number(p.cid))) tomar(toDateInput(p.fecha)); });
+  GASTOS.forEach(g => { if(g.ubicacion === ub) tomar(esCierreCorte(g) ? cierreInfo(g).periodo : toDateInput(g.fecha)); });
+  cache.primero = min;
+  return min;
+}
+// Movimientos "en vivo" del mes: cobrado (base caja, por fecha de pago), gastos reales y
+// comisión. Misma aritmética que corteDatos(); sin saldos por depto (barato para recorrer meses).
+function corteMovimientosMes(ub, mes){
+  const ids = new Set(C.filter(c => c.ub === ub).map(c => c.id));
+  let cobrado = 0, comision = 0;
+  PAGOS.forEach(p => {
+    if(!ids.has(Number(p.cid)) || String(toDateInput(p.fecha)).slice(0,7) !== mes) return;
+    const c = C.find(x => x.id === Number(p.cid));
+    const monto = Number(p.monto) || 0, pct = Number(c && c.pctComision) || 0;
+    cobrado += monto;
+    comision += Math.round(monto*pct)/100;
+  });
+  const gastos = gastosDe(ub, mes).reduce((s,g) => s + (Number(g.monto)||0), 0);
+  return {cobrado: r2(cobrado), gastos: r2(gastos), comision: r2(comision)};
+}
+// Saldo inicial de (ubicacion, año, mes 0-11) según la regla de arrastre. Pura sobre C/PAGOS/GASTOS.
+function corteSaldoInicial(ubicacion, año, mes){
+  const [py, pm] = corteMesAnterior(año, mes);
+  const mesPrev = corteMesKey(py, pm);
+  const cierre = cierreDe(ubicacion, mesPrev);
+  if(cierre){                                     // ancla: saldo congelado del mes cerrado
+    const sf = cierreInfo(cierre).saldoFinal;
+    return sf < 0 ? sf : 0;
+  }
+  const primero = cortePrimerMes(ubicacion);
+  if(!primero || mesPrev < primero) return 0;     // antes de la primera actividad
+  return corteResumenMes(ubicacion, py, pm).saldoFinal;   // abierto: se arrastra (positivo o negativo)
+}
+// Resumen de un mes: {mes, cerrado, cierre, saldoInicial, cobrado, gastos, comision, saldoFinal, saldoFinalVivo, netoEntregar}
+function corteResumenMes(ub, año, mes){
+  const key = corteMesKey(año, mes);
+  const cache = corteCacheDe(ub).meses;
+  if(cache[key]) return cache[key];
+  const mov = corteMovimientosMes(ub, key);
+  const saldoInicial = corteSaldoInicial(ub, año, mes);
+  const saldoFinalVivo = r2(saldoInicial + mov.cobrado - mov.gastos - mov.comision);
+  const cierre = cierreDe(ub, key);
+  const info = cierre ? cierreInfo(cierre) : null;
+  const saldoFinal = info ? info.saldoFinal : saldoFinalVivo;
+  const r = {ub, mes: key, cerrado: !!cierre, cierre: info, saldoInicial, cobrado: mov.cobrado, gastos: mov.gastos, comision: mov.comision,
+             saldoFinal, saldoFinalVivo, netoEntregar: saldoFinal > 0 ? saldoFinal : 0};
+  cache[key] = r;
+  return r;
+}
+// Cerrar / reabrir un mes (persistido como registro CIERRE_CORTE vía saveGasto / deleteGasto).
+function cerrarCorteMes(ub, mes, saldoFinal){
+  if(cierreDe(ub, mes)) return null;
+  const ahora = new Date();
+  const reg = {
+    id: 'g' + Date.now() + Math.floor(Math.random()*1000),
+    fecha: toDateInput(ahora), ubicacion: ub, contratoId: '', categoria: CAT_CIERRE_CORTE,
+    concepto: `Cierre corte ${mes}`, monto: r2(saldoFinal), comprobante: '',
+    nota: JSON.stringify({periodo: mes, saldoFinal: r2(saldoFinal), usuario: currentUser, cerradoEl: ahora.toISOString()}),
+    usuario: currentUser, timestamp: ahora.toISOString()
+  };
+  guardarGasto(reg, 'CORTE_CERRADO');
+  return reg;
+}
+function reabrirCorteMes(ub, mes){
+  const g = cierreDe(ub, mes);
+  if(!g) return null;
+  return eliminarGastoData(g.id, 'CORTE_REABIERTO');
+}
+// Diagnóstico en consola: corteDebugTabla('Dr Velasco 106', 2026, 1, 8)
+function corteDebugTabla(ub, año, mesDesde, mesHasta){
+  const filas = [];
+  for(let m = (mesDesde||1)-1; m <= (mesHasta||12)-1; m++){
+    const r = corteResumenMes(ub, año, m);
+    filas.push({mes: r.mes, cerrado: r.cerrado ? 'sí' : 'no', saldoInicial: r.saldoInicial, cobrado: r.cobrado, gastos: r.gastos,
+                comision: r.comision, saldoFinal: r.saldoFinal, netoEntregar: r.netoEntregar});
+  }
+  if(typeof console.table === 'function') console.table(filas); else console.log(filas);
+  return filas;
+}
+// "Renta pagada": periodos que cubre cada pago del contrato según la cascada FIFO del
+// motor (mismas filas y mismo orden que calcularEstadoCuenta). Un pago que liquida
+// varios meses (adelanto) los lista todos; si deja un mes incompleto, va "(parcial)".
+// Devuelve Map clave-de-pago → [etiquetas] (cola, por si hay pagos idénticos).
+function cortePagoKey(p){ return `${p.timestamp||''}|${toDateInput(p.fecha)}|${Number(p.monto)||0}`; }
+function corteRentaPagadaMap(c, finMes){
+  const horizonte = new Date(finMes.getFullYear(), finMes.getMonth()+25, 1);   // para ver adelantos
+  const ec = calcularEstadoCuenta(c, horizonte, finMes);
+  const restante = ec.filas.map(f => f.renta);
+  const map = new Map();
+  // Mismo orden que el motor (fecha); pagos del mismo día se desempatan por su campo periodo y timestamp
+  const pagosOrd = [...ec.pagos].sort((a,b) => (a._f - b._f)
+    || String(toDateInput(a.periodo)).localeCompare(String(toDateInput(b.periodo)))
+    || String(a.timestamp||'').localeCompare(String(b.timestamp||'')));
+  pagosOrd.forEach(p => {
+    let bolsa = p.monto; const partes = [];
+    for(let i = 0; i < restante.length && bolsa > 0.009; i++){
+      if(restante[i] <= 0.009) continue;
+      const cov = Math.min(bolsa, restante[i]);
+      restante[i] = r2(restante[i] - cov); bolsa = r2(bolsa - cov);
+      const f = ec.filas[i];
+      const nombre = f.tipo === 'inicial' ? 'Adeudo anterior' : perLargo(f.periodo);
+      partes.push(restante[i] > 0.009 ? `${nombre} (parcial)` : nombre);
+    }
+    const k = cortePagoKey(p);
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(partes.join(', '));
+  });
+  return map;
+}
 
 // Orden natural de departamentos: 1, 2, 10 (no 1, 10, 2); soporta "PB", "2A", "12/CTO".
 function cmpDepto(a, b){
@@ -2310,7 +2493,18 @@ const CORTE_CSS = `
 .mz-inf .rojo{color:#B03A2E;font-weight:700;}
 .mz-inf .verde{color:#1E7B4F;font-weight:700;}
 .mz-inf .vacio{text-align:center;color:#7a8a8f;padding:10px;}
-.mz-inf .mz-liq{width:100%;max-width:400px;margin-left:auto;border-collapse:collapse;}
+.mz-inf .mz-pagos th{white-space:normal;}
+.mz-inf .mz-pagos td.per{font-size:11px;line-height:1.25;}
+.mz-inf .mz-pagos col.c-dep{width:12%;}
+.mz-inf .mz-pagos col.c-inq{width:30%;}
+.mz-inf .mz-pagos col.c-fec{width:14%;}
+.mz-inf .mz-pagos col.c-per{width:28%;}
+.mz-inf .mz-pagos col.c-mon{width:16%;}
+.mz-inf .tag.cerrado{color:#1E7B4F;border:1px solid #1E7B4F;background:#fff;font-family:'Rajdhani','Century Gothic',Calibri,sans-serif;letter-spacing:1px;text-transform:none;}
+.mz-inf .mz-liq{width:100%;max-width:420px;margin-left:auto;border-collapse:collapse;}
+.mz-inf .mz-liq tr.total td{font-weight:700;border-top:2px solid #7BADA8;border-bottom:none;}
+.mz-inf .mz-liq-nota{font-size:8.5pt;color:#7BADA8;max-width:420px;margin:6px 0 0 auto;line-height:1.3;}
+.mz-inf .mz-liq-aviso{color:#8a6d00;}
 .mz-inf .mz-liq td{padding:6px 8px;border-bottom:1px solid #e3e8ea;color:#1A1A2E;background:#fff;}
 .mz-inf .mz-liq tr.neto td{background:#0F2027;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;padding:10px 8px;border:none;}
 .mz-inf .mz-liq tr.neto td.num{font-size:14px;}
@@ -2373,29 +2567,44 @@ function corteDatos(){
       const pct = Number(c.pctComision) || 0;
       const monto = Number(p.monto) || 0;
       return {cid:c.id, u:c.u, inq:c.inq, estatus:estatusDe(c), fecha:toDateInput(p.fecha), periodo:String(p.periodo||'').slice(0,7),
-              monto, pct, comision: Math.round(monto*pct)/100};
+              key: cortePagoKey(p), monto, pct, comision: Math.round(monto*pct)/100};
     })
     .sort((a,b)=> cmpDepto(a,b) || a.fecha.localeCompare(b.fecha));
   const totalIngresos = ingresos.reduce((s,i)=>s+i.monto, 0);
   const totalComision = Math.round(ingresos.reduce((s,i)=>s+i.comision, 0)*100)/100;
   const pcts = [...new Set(contratos.map(c=>Number(c.pctComision)||0).filter(p=>p>0))];
-  // Filas de "Pagos recibidos": una por pago; deptos sin cobro → una fila en $0
+  // Filas de "Pagos recibidos": una por pago; deptos sin cobro → una fila en $0.
+  // rentaPagada = periodo(s) que cubre el pago según la cascada FIFO; si el motor no
+  // lo aplica (p. ej. pago anterior al corte contable) cae al campo `periodo` del pago.
+  const finMes = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+1, 0);
   const filasPagos = [];
   contratos.forEach(c => {
     const pagosC = ingresos.filter(i => i.cid === c.id);
     const est = estatusDe(c);
-    if(pagosC.length) pagosC.forEach(p => filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, monto:p.monto, pago:true}));
-    else filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', monto:0, pago:false});
+    if(pagosC.length){
+      const mapRP = corteRentaPagadaMap(c, finMes);
+      pagosC.forEach(p => {
+        const cola = mapRP.get(p.key);
+        const rentaPagada = (cola && cola.length ? cola.shift() : '') || perLargo(p.periodo);
+        filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, rentaPagada, monto:p.monto, pago:true});
+      });
+    }
+    else filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', rentaPagada:'', monto:0, pago:false});
   });
   const sinCobro = contratos.filter(c => !ingresos.some(i => i.cid === c.id))
     .map(c => ({u:c.u, inq:c.inq, estatus:estatusDe(c)}));
   // EGRESOS
   const gastos = gastosDe(ub, mes);
   const totalGastos = gastos.reduce((s,g)=>s+(Number(g.monto)||0), 0);
-  const neto = Math.round((totalIngresos - totalGastos - totalComision)*100)/100;
+  // LIQUIDACIÓN con arrastre: saldo inicial (mes anterior) + cobrado − gastos − comisión.
+  // Un mes cerrado muestra su saldo final CONGELADO; el vivo se conserva para avisar si difiere.
+  const res = corteResumenMes(ub, corteMesDate.getFullYear(), corteMesDate.getMonth());
+  const saldoInicial = res.saldoInicial;
+  const saldoFinalVivo = r2(saldoInicial + totalIngresos - totalGastos - totalComision);
+  const saldoFinal = res.cerrado ? res.saldoFinal : saldoFinalVivo;
+  const netoEntregar = saldoFinal > 0 ? saldoFinal : 0;
   // SALDO POR DEPARTAMENTO al cierre del mes: cargos hasta el mes del corte y
   // pagos hasta el último día del mes (motor FIFO con adeudoIni y regla de vacante).
-  const finMes = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+1, 0);
   const saldos = contratos.map(c => {
     const ec = calcularEstadoCuenta(c, corteMesDate, finMes);
     const sobrante = Math.max(0, Math.round((ec.totalPagado - ec.rentaCubierta - ec.moraCubierta)*100)/100);
@@ -2406,7 +2615,8 @@ function corteDatos(){
   const totalFavor  = saldos.reduce((s,x)=>s+(x.saldo<0?-x.saldo:0), 0);
   const props = [...new Set(contratos.map(c=>c.prop).filter(Boolean))];
   return {ub, mes, contratos, ingresos, filasPagos, sinCobro, totalIngresos, totalComision, pcts,
-          gastos, totalGastos, neto, saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—'};
+          gastos, totalGastos, saldoInicial, saldoFinal, saldoFinalVivo, netoEntregar, cerrado: res.cerrado, cierre: res.cierre,
+          saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—'};
 }
 
 function corteBodyHTML(d){
@@ -2417,7 +2627,8 @@ function corteBodyHTML(d){
   const inqCell = f => f.estatus==='vacante' ? '<span class="tag vac">🔲 VACANTE</span>'
                     : f.estatus==='juicio'  ? `${esc(f.inq)}<span class="tag juicio">⚖️ EN JUICIO</span>`
                     : esc(f.inq);
-  const perLabel = p => p && /^\d{4}-\d{2}$/.test(p) ? `${MES3[+p.slice(5,7)-1]} ${p.slice(0,4)}` : p;
+  // Monto con signo: negativos con "−" delante (fM2 no maneja negativos)
+  const fS = n => (Number(n)||0) < -0.004 ? '−' + fM2(-n) : fM2(n);
   const head = titulo => `
     <div class="mz-head">
       <img src="data:image/jpeg;base64,${LOGO_B64}" alt="Moctezuma">
@@ -2431,9 +2642,10 @@ function corteBodyHTML(d){
     <tr class="${f.pago?'ok':'bad'}">
       <td><b>${esc(f.u)}</b></td>
       <td>${inqCell(f)}</td>
-      <td>${f.pago ? `${fF(f.fecha)}${f.periodo?`<span class="sub">Renta de ${perLabel(f.periodo)}</span>`:''}` : '—'}</td>
+      <td>${f.pago ? fF(f.fecha) : '—'}</td>
+      <td class="per">${f.pago ? esc(f.rentaPagada) : ''}</td>
       <td class="num">${fM2(f.monto)}</td>
-    </tr>`).join('') || `<tr><td colspan="4" class="vacio">Sin contratos en este inmueble</td></tr>`;
+    </tr>`).join('') || `<tr><td colspan="5" class="vacio">Sin contratos en este inmueble</td></tr>`;
 
   // ── Gastos ──
   const gastoRows = d.gastos.length ? d.gastos.map(g => {
@@ -2476,10 +2688,11 @@ function corteBodyHTML(d){
     ${aviso}
 
     <h2>Pagos recibidos</h2>
-    <table>
-      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha de pago</th><th class="num">Cantidad pagada</th></tr></thead>
+    <table class="mz-pagos">
+      <colgroup><col class="c-dep"><col class="c-inq"><col class="c-fec"><col class="c-per"><col class="c-mon"></colgroup>
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha de pago</th><th>Renta pagada</th><th class="num">Cantidad pagada</th></tr></thead>
       <tbody>${pagosRows}</tbody>
-      <tfoot><tr><td colspan="3" class="num">TOTAL DE INGRESOS DEL MES</td><td class="num">${fM2(d.totalIngresos)}</td></tr></tfoot>
+      <tfoot><tr><td colspan="4" class="num">TOTAL DE INGRESOS DEL MES</td><td class="num">${fM2(d.totalIngresos)}</td></tr></tfoot>
     </table>
 
     <h2>Gastos</h2>
@@ -2489,13 +2702,17 @@ function corteBodyHTML(d){
       <tfoot><tr><td colspan="3" class="num">TOTAL DE GASTOS</td><td class="num">${fM2(d.totalGastos)}</td></tr></tfoot>
     </table>
 
-    <h2>Liquidación</h2>
+    <h2>Liquidación${d.cerrado ? `<span class="tag cerrado">🔒 CERRADO · ${fF(d.cierre.fecha)}</span>` : ''}</h2>
     <table class="mz-liq">
-      <tr><td>Total cobrado</td><td class="num">${fM2(d.totalIngresos)}</td></tr>
-      <tr><td>(−) Gastos</td><td class="num rojo">−${fM2(d.totalGastos)}</td></tr>
+      <tr><td>Saldo inicial (arrastre del mes anterior)</td><td class="num${d.saldoInicial < -0.004 ? ' rojo' : ''}">${fS(d.saldoInicial)}</td></tr>
+      <tr><td>(+) Total cobrado en el mes</td><td class="num">${fM2(d.totalIngresos)}</td></tr>
+      <tr><td>(−) Gastos del mes</td><td class="num rojo">−${fM2(d.totalGastos)}</td></tr>
       <tr><td>(−) ${comLabel}</td><td class="num rojo">−${fM2(d.totalComision)}</td></tr>
-      <tr class="neto"><td>NETO A ENTREGAR AL PROPIETARIO</td><td class="num">${fM2(d.neto)}</td></tr>
+      <tr class="total"><td>= Saldo final del mes</td><td class="num${d.saldoFinal < -0.004 ? ' rojo' : ''}">${fS(d.saldoFinal)}</td></tr>
+      <tr class="neto"><td>NETO A ENTREGAR AL PROPIETARIO</td><td class="num">${fM2(d.netoEntregar)}</td></tr>
     </table>
+    ${d.cerrado && Math.abs(d.saldoFinal - d.saldoFinalVivo) > 0.004 ? `<div class="mz-liq-nota mz-liq-aviso">Saldo final congelado al cierre del mes. Con los movimientos actuales el recálculo en vivo daría ${fS(d.saldoFinalVivo)}.</div>` : ''}
+    <div class="mz-liq-nota">El saldo inicial corresponde al saldo final del corte anterior. Un mes marcado como cerrado se considera entregado y el siguiente arranca en cero; los saldos negativos y los positivos de meses no cerrados se arrastran automáticamente.</div>
 
     <div class="mz-firma">
       <div class="linea"></div>
@@ -2527,9 +2744,47 @@ function corteBodyHTML(d){
 
 function renderCorte(){
   ensureCorteCss();
+  const d = corteDatos();
   document.getElementById('corteTitulo').textContent = `💼 INFORME MENSUAL — ${corteUb}`;
   document.getElementById('corteMesLabel').textContent = corteMesLabel();
-  document.getElementById('corteBody').innerHTML = corteBodyHTML(corteDatos());
+  document.getElementById('corteBody').innerHTML = corteBodyHTML(d);
+  corteRenderCierreUI(d);
+}
+// Casilla "Mes cerrado y entregado": solo se puede marcar con saldo final >= 0 y como Administrador.
+function corteRenderCierreUI(d){
+  const chk = document.getElementById('corteCierreChk');
+  const est = document.getElementById('corteCierreEstado');
+  const nota = document.getElementById('corteCierreNota');
+  if(!chk || !est || !nota) return;
+  const esAdmin = currentRole === 'Administrador';
+  const negativo = !d.cerrado && d.saldoFinalVivo < -0.004;
+  chk.checked = d.cerrado;
+  chk.disabled = negativo || !esAdmin;
+  est.textContent = d.cerrado
+    ? `🔒 CERRADO · ${fF(d.cierre.fecha)}${d.cierre.usuario ? ' · ' + d.cierre.usuario : ''}`
+    : '';
+  let msg = '';
+  if(negativo) msg = 'No se puede cerrar un mes con saldo negativo; se arrastra automáticamente al siguiente.';
+  else if(!esAdmin) msg = 'Solo el Administrador puede cerrar o reabrir un mes.';
+  nota.textContent = msg;
+  nota.style.display = msg ? 'block' : 'none';
+}
+function toggleCierreCorte(chk){
+  const ub = corteUb, mes = corteMesStr();
+  const d = corteResumenMes(ub, corteMesDate.getFullYear(), corteMesDate.getMonth());
+  if(currentRole !== 'Administrador'){ chk.checked = d.cerrado; toast('Solo el Administrador puede cerrar o reabrir un mes','error'); return; }
+  if(chk.checked){
+    if(d.cerrado) return;
+    if(d.saldoFinalVivo < -0.004){ chk.checked = false; toast('No se puede cerrar un mes con saldo negativo; se arrastra al siguiente','warn'); return; }
+    cerrarCorteMes(ub, mes, d.saldoFinalVivo);
+    toast(`🔒 ${corteMesLabel()} cerrado · saldo final congelado ${fM(d.saldoFinalVivo)}`,'success');
+  } else {
+    if(!d.cerrado) return;
+    if(!confirm(`¿Reabrir ${corteMesLabel()} de ${ub}? El mes volverá a calcularse en vivo y su saldo se arrastrará al siguiente.`)){ chk.checked = true; return; }
+    reabrirCorteMes(ub, mes);
+    toast(`🔓 ${corteMesLabel()} reabierto — vuelve a calcularse en vivo`,'warn');
+  }
+  renderCorte();
 }
 
 function imprimirCorte(){
@@ -4428,6 +4683,7 @@ async function autoCargarSheets(){
       const pagosData = await jsonpFetch(SHEETS_URL + '?action=getPagos');
       if(Array.isArray(pagosData)){
         PAGOS = pagosData;
+        corteInvalidarCache();
         const sp = document.getElementById('pagosSync');
         if(sp) sp.textContent = `${PAGOS.length} pagos registrados`;
         renderPagos();
