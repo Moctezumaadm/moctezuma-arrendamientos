@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34u</title>
+<title>Moctezuma — Control de Arrendamientos v34v</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34u · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34v · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -1058,7 +1058,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34u — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34v — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1193,7 +1193,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34u · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34v · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -2417,35 +2417,28 @@ function corteDebugTabla(ub, año, mesDesde, mesHasta){
   if(typeof console.table === 'function') console.table(filas); else console.log(filas);
   return filas;
 }
-// "Renta pagada": periodos que cubre cada pago del contrato según la cascada FIFO del
-// motor (mismas filas y mismo orden que calcularEstadoCuenta). Un pago que liquida
-// varios meses (adelanto) los lista todos; si deja un mes incompleto, va "(parcial)".
-// Devuelve Map clave-de-pago → [etiquetas] (cola, por si hay pagos idénticos).
-function cortePagoKey(p){ return `${p.timestamp||''}|${toDateInput(p.fecha)}|${Number(p.monto)||0}`; }
-function corteRentaPagadaMap(c, finMes){
-  const horizonte = new Date(finMes.getFullYear(), finMes.getMonth()+25, 1);   // para ver adelantos
-  const ec = calcularEstadoCuenta(c, horizonte, finMes);
-  const restante = ec.filas.map(f => f.renta);
-  const map = new Map();
-  // Mismo orden que el motor (fecha); pagos del mismo día se desempatan por su campo periodo y timestamp
-  const pagosOrd = [...ec.pagos].sort((a,b) => (a._f - b._f)
-    || String(toDateInput(a.periodo)).localeCompare(String(toDateInput(b.periodo)))
-    || String(a.timestamp||'').localeCompare(String(b.timestamp||'')));
-  pagosOrd.forEach(p => {
-    let bolsa = p.monto; const partes = [];
-    for(let i = 0; i < restante.length && bolsa > 0.009; i++){
-      if(restante[i] <= 0.009) continue;
-      const cov = Math.min(bolsa, restante[i]);
-      restante[i] = r2(restante[i] - cov); bolsa = r2(bolsa - cov);
-      const f = ec.filas[i];
-      const nombre = f.tipo === 'inicial' ? 'Adeudo anterior' : perLargo(f.periodo);
-      partes.push(restante[i] > 0.009 ? `${nombre} (parcial)` : nombre);
-    }
-    const k = cortePagoKey(p);
-    if(!map.has(k)) map.set(k, []);
-    map.get(k).push(partes.join(', '));
-  });
-  return map;
+// "Renta pagada": el periodo que el administrador etiquetó al registrar el pago
+// (campo `periodo`). Si el monto equivale a dos o más rentas del contrato, se listan
+// los meses consecutivos que cubre (adelanto). Sin simulación FIFO ni "(parcial)":
+// los adeudos reales viven en la hoja 2.
+function corteRentaDePeriodo(c, per){
+  const full = Number(c.r) || 0, mtto = MTTO_INCLUIDO[c.ub];
+  return (mtto && per < mtto.cobrarDesde) ? Math.max(0, full - mtto.monto) : full;
+}
+function corteRentaPagadaLabel(c, p){
+  const per = String(toDateInput(p.periodo) || p.periodo || '').slice(0,7);
+  if(!/^\d{4}-\d{2}$/.test(per)) return per;
+  const monto = Number(p.monto) || 0;
+  const meses = [per];
+  let resto = monto - corteRentaDePeriodo(c, per);
+  let y = +per.slice(0,4), m = +per.slice(5,7) - 1;
+  while(true){                                   // adelanto: mientras alcance para la renta completa del mes siguiente
+    m++; if(m > 11){ m = 0; y++; }
+    const sig = corteMesKey(y, m), r = corteRentaDePeriodo(c, sig);
+    if(!(r > 0) || resto < r - 0.009 || meses.length >= 24) break;
+    meses.push(sig); resto -= r;
+  }
+  return meses.map(perLargo).join(', ');
 }
 
 // Orden natural de departamentos: 1, 2, 10 (no 1, 10, 2); soporta "PB", "2A", "12/CTO".
@@ -2567,28 +2560,20 @@ function corteDatos(){
       const pct = Number(c.pctComision) || 0;
       const monto = Number(p.monto) || 0;
       return {cid:c.id, u:c.u, inq:c.inq, estatus:estatusDe(c), fecha:toDateInput(p.fecha), periodo:String(p.periodo||'').slice(0,7),
-              key: cortePagoKey(p), monto, pct, comision: Math.round(monto*pct)/100};
+              rentaPagada: corteRentaPagadaLabel(c, p), monto, pct, comision: Math.round(monto*pct)/100};
     })
     .sort((a,b)=> cmpDepto(a,b) || a.fecha.localeCompare(b.fecha));
   const totalIngresos = ingresos.reduce((s,i)=>s+i.monto, 0);
   const totalComision = Math.round(ingresos.reduce((s,i)=>s+i.comision, 0)*100)/100;
   const pcts = [...new Set(contratos.map(c=>Number(c.pctComision)||0).filter(p=>p>0))];
   // Filas de "Pagos recibidos": una por pago; deptos sin cobro → una fila en $0.
-  // rentaPagada = periodo(s) que cubre el pago según la cascada FIFO; si el motor no
-  // lo aplica (p. ej. pago anterior al corte contable) cae al campo `periodo` del pago.
+  // rentaPagada = periodo etiquetado en el pago (+ meses siguientes si el monto cubre varias rentas).
   const finMes = new Date(corteMesDate.getFullYear(), corteMesDate.getMonth()+1, 0);
   const filasPagos = [];
   contratos.forEach(c => {
     const pagosC = ingresos.filter(i => i.cid === c.id);
     const est = estatusDe(c);
-    if(pagosC.length){
-      const mapRP = corteRentaPagadaMap(c, finMes);
-      pagosC.forEach(p => {
-        const cola = mapRP.get(p.key);
-        const rentaPagada = (cola && cola.length ? cola.shift() : '') || perLargo(p.periodo);
-        filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, rentaPagada, monto:p.monto, pago:true});
-      });
-    }
+    if(pagosC.length) pagosC.forEach(p => filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, rentaPagada:p.rentaPagada, monto:p.monto, pago:true}));
     else filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', rentaPagada:'', monto:0, pago:false});
   });
   const sinCobro = contratos.filter(c => !ingresos.some(i => i.cid === c.id))
