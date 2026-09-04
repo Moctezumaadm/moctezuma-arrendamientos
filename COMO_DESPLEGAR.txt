@@ -1,0 +1,77 @@
+CÓMO DESPLEGAR UNA NUEVA VERSIÓN DE index.html EN APPS SCRIPT
+==============================================================
+Proyecto: Moctezuma — Control de Arrendamientos
+Última versión: v34v (04-sep-2026)
+
+El código de la app (index.html) se sirve desde Apps Script. Cada vez que cambia
+el archivo local hay que copiarlo al editor de Apps Script y publicar una nueva
+versión. El archivo .gs NO se toca a menos que el cambio lo diga expresamente.
+
+
+1. COPIAR EL ARCHIVO NUEVO
+--------------------------
+- Abrir C:\Users\aldeb\Documents\moctezuma-arrendamientos\index.html
+  en VS Code o el Bloc de notas.
+- Ctrl+A, Ctrl+C. (Son unas 5,200 líneas, es normal.)
+
+
+2. PEGARLO EN APPS SCRIPT
+-------------------------
+- Entrar a https://script.google.com y abrir el proyecto de Control de
+  Arrendamientos.
+- En el panel izquierdo, hacer clic en el archivo  index.html
+  (el archivo .gs no se toca).
+- Dentro del editor: Ctrl+A, Ctrl+V. Esperar a que termine de pegar.
+- Ctrl+S para guardar.
+- Confirmar que en las primeras líneas el <title> diga la versión nueva
+  (por ejemplo v34v).
+
+
+3. PUBLICAR LA NUEVA VERSIÓN SIN CAMBIAR LA URL
+-----------------------------------------------
+- Botón azul  Implementar  ->  Administrar implementaciones.
+- En la implementación activa (tipo "Aplicación web") pulsar el LÁPIZ (editar).
+- En "Versión" elegir  Nueva versión  y escribir una descripción, por ejemplo:
+      v34v — saldo inicial/final, cierre de mes, renta pagada
+- Pulsar  Implementar.
+
+  IMPORTANTE: NO usar "Nueva implementación". Eso crea OTRA URL y la app que
+  usa todo el mundo dejaría de recibir el cambio. Siempre EDITAR la existente.
+
+
+4. VERIFICAR
+------------
+- Abrir la URL de la app y recargar con Ctrl+Shift+R (limpia caché).
+- La pantalla de login debe decir:  v34v · Sistema listo · Web App
+- Entrar y abrir el informe de Dr Velasco 106 en agosto 2026:
+    · Columna "Renta pagada" visible entre "Fecha de pago" y "Cantidad pagada".
+    · Casilla "Mes cerrado y entregado al propietario" junto al mes.
+      Agosto tiene saldo negativo: la casilla debe salir deshabilitada con la
+      nota roja "No se puede cerrar un mes con saldo negativo...".
+    · Liquidación con: Saldo inicial / (+) Total cobrado / (−) Gastos /
+      (−) Comisión / = Saldo final / NETO A ENTREGAR.
+- En la consola del navegador (F12 -> Console) ejecutar:
+
+      corteDebugTabla('Dr Velasco 106', 2026, 1, 8)
+
+  Debe imprimir la tabla de meses (mayo +3,520 · agosto −2,082.84 con los
+  datos del 03-sep-2026).
+
+
+5. SI ALGO SALE MAL (VOLVER ATRÁS)
+----------------------------------
+- Implementar -> Administrar implementaciones -> lápiz de la implementación
+  activa -> en "Versión" elegir la versión anterior (por ejemplo v34t)
+  -> Implementar.
+- Los datos del Sheet (Contratos, PAGOS, GASTOS) no se tocan en ningún paso.
+
+
+NOTAS
+-----
+- El cierre de mes se guarda en la pestaña GASTOS como una fila con
+  categoria = CIERRE_CORTE. No es un gasto real: la app la excluye del módulo
+  de Gastos y de los totales. No borrarla a mano en el Sheet; para reabrir un
+  mes se desmarca la casilla en el informe.
+- Existe clasp 3.3.0 instalado en esta máquina. Si se quiere subir con un
+  comando en vez de copiar y pegar, hay que configurar .clasp.json con el ID
+  del script (pendiente).
