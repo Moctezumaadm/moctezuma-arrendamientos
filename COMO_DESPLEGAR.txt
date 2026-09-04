@@ -66,6 +66,21 @@ versión. El archivo .gs NO se toca a menos que el cambio lo diga expresamente.
 - Los datos del Sheet (Contratos, PAGOS, GASTOS) no se tocan en ningún paso.
 
 
+ERRORES YA VISTOS (04-sep-2026)
+-------------------------------
+- "SyntaxError: Unexpected token '<', línea 1, archivo Código.gs"
+  -> El HTML se pegó en Código.gs. Restaurar Código.gs desde
+     apps-script-completo.gs y pegar el HTML en index.html.
+- "ReferenceError: a is not defined (línea 411, archivo Código)" en la app
+  -> Al pegar Código.gs se coló una letra suelta ("}a"). Buscar la línea con
+     Ctrl+G, dejar solo "}", guardar Y publicar Nueva versión en la
+     implementación de producción. Guardar el código NO basta: la URL /exec
+     sirve la versión publicada, no el editor.
+- La implementación de producción es la de URL terminada en
+  ...KjkSt67aNlfLfzg/exec. Si aparecen varias, editar SIEMPRE esa.
+- Comprobación rápida sin entrar a la app: abrir
+  <URL de la app>?action=ping   ->  debe responder {"ok":true,"version":...}
+
 NOTAS
 -----
 - El cierre de mes se guarda en la pestaña GASTOS como una fila con
