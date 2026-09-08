@@ -3,7 +3,7 @@
 // Google Apps Script — v34p (Web App + Permisos + Auditoría + Pagos + Gastos)
 // ═══════════════════════════════════════════════════════
 
-const SCRIPT_VERSION = 'v34p';
+const SCRIPT_VERSION = 'v34w';
 
 const SHEET_NAME   = 'Contratos';
 const ACCESO_SHEET = 'ACCESO';
@@ -290,7 +290,7 @@ function deletePago(d) {
 
 
 // Garantiza el esquema que necesita v34p: pestaña GASTOS con su fila 1, y
-// encabezados modoAdmin/pctComision en la fila 1 de Contratos (buscados por
+// encabezados modoAdmin/pctComision/formaPago en la fila 1 de Contratos (buscados por
 // nombre, no por letra de columna). Idempotente: se ejecuta en cada doGet y
 // no toca ninguna otra pestaña ni filas de datos.
 function ensureSchema_() {
@@ -317,6 +317,14 @@ function ensureSchema_() {
       fila1[col - 1] = h;
       info.columnasAgregadas.push(h);
     });
+    // v34w: formaPago ('cuenta' | 'efectivo'). Se agrega SIEMPRE al final de la
+    // fila 1 (después de pctComision), sin mover ni renombrar columnas.
+    if (fila1.indexOf('formaPago') < 0) {
+      const colFP = fila1.length + 1;
+      contratos.getRange(1, colFP).setValue('formaPago');
+      fila1.push('formaPago');
+      info.columnasAgregadas.push('formaPago');
+    }
   }
   return info;
 }
@@ -328,7 +336,7 @@ function migrarColumnas() {
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) return { ok: false, error: 'Hoja no encontrada' };
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const faltan = ['estatus','fechaDesocupacion','modoAdmin','pctComision'].filter(h => headers.indexOf(h) < 0);
+  const faltan = ['estatus','fechaDesocupacion','modoAdmin','pctComision','formaPago'].filter(h => headers.indexOf(h) < 0);
   faltan.forEach((h, i) => sheet.getRange(1, headers.length + 1 + i).setValue(h));
   return { ok: true, agregadas: faltan, encabezados: headers.concat(faltan) };
 }

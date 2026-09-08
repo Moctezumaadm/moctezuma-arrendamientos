@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34v</title>
+<title>Moctezuma — Control de Arrendamientos v34w</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34v · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34w · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -574,6 +574,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <select id="nModoAdmin" onchange="document.getElementById('nPctComWrap').style.display=this.value==='integral'?'block':'none'" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
               <option value="comision">Solo comisión (normal)</option>
               <option value="integral">Administración integral (corte al dueño)</option>
+              <option value="poliza">Solo póliza (el propietario es el arrendador)</option>
             </select>
           </div>
           <div id="nPctComWrap" style="display:none;">
@@ -584,7 +585,14 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 
         <!-- SECCIÓN: DATOS BANCARIOS -->
         <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">DATOS BANCARIOS (PARA RECIBO)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Forma de pago de la renta</label>
+          <select id="nFormaPago" onchange="toggleBancoWrap('n')" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+            <option value="cuenta">Depósito / transferencia a cuenta (normal)</option>
+            <option value="efectivo">Efectivo, transferencia o código de retiro (sin datos bancarios)</option>
+          </select>
+        </div>
+        <div id="nBancoWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
           <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Banco</label>
             <input id="nBco" placeholder="Ej: Banco Azteca" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
@@ -776,7 +784,14 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 
         <!-- DATOS BANCARIOS -->
         <div style="font-weight:bold;color:#3D7A75;font-size:12px;border-bottom:1px solid #3D7A75;margin-bottom:12px;padding-bottom:4px;letter-spacing:1px;">DATOS BANCARIOS</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Forma de pago de la renta</label>
+          <select id="eFormaPago" onchange="toggleBancoWrap('e')" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
+            <option value="cuenta">Depósito / transferencia a cuenta (normal)</option>
+            <option value="efectivo">Efectivo, transferencia o código de retiro (sin datos bancarios)</option>
+          </select>
+        </div>
+        <div id="eBancoWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
           <div>
             <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">Banco</label>
             <input id="eBco" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
@@ -853,6 +868,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <select id="eModoAdmin" onchange="document.getElementById('ePctComWrap').style.display=this.value==='integral'?'block':'none'" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
               <option value="comision">Solo comisión (normal)</option>
               <option value="integral">Administración integral (corte al dueño)</option>
+              <option value="poliza">Solo póliza (el propietario es el arrendador)</option>
             </select>
           </div>
           <div id="ePctComWrap" style="display:none;">
@@ -1058,7 +1074,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34v — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34w — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1193,7 +1209,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34v · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34w · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1300,6 +1316,7 @@ function normalizarContrato(c){
   if(typeof c.est === 'string') c.est = c.est.toLowerCase() === 'true';
   if(!c.estatus) c.estatus = 'activo';
   if(!c.modoAdmin) c.modoAdmin = 'comision';
+  if(!c.formaPago) c.formaPago = 'cuenta';   // contratos previos a v34w
   return c;
 }
 
@@ -1307,6 +1324,25 @@ function normalizarContrato(c){
 function estatusDe(c){ return c.estatus || 'activo'; }
 // Administración integral: cobramos rentas, pagamos gastos y entregamos el neto al dueño
 function esIntegral(c){ return (c.modoAdmin || 'comision') === 'integral'; }
+// Solo póliza (v34w): Moctezuma NO es parte del contrato de arrendamiento, solo emite la
+// póliza. El propietario (c.prop) es el arrendador y el beneficiario de póliza y pagarés.
+// Para comisión/corte se comporta igual que 'comision' (esIntegral === false).
+function esPoliza(c){ return (c.modoAdmin || 'comision') === 'poliza'; }
+function esPagoEfectivo(c){ return (c.formaPago || 'cuenta') === 'efectivo'; }
+const MOCTEZUMA_TITULAR = 'Lic. Ángel Alberto Flores Moctezuma';
+// Nombre del arrendador / beneficiario según el modo. En cualquier modo distinto de
+// 'poliza' devuelve exactamente el literal que ya usaban las plantillas.
+function arrendadorDe(c){ return esPoliza(c) ? (String(c.prop||'').trim() || '______________________') : MOCTEZUMA_TITULAR; }
+function beneficiarioDe(c){ return arrendadorDe(c); }
+function badgePoliza(c, estilo){
+  return esPoliza(c) ? `<span class="badge" style="background:rgba(41,128,185,.22);color:#7fb3d5;${estilo||''}">📄 PÓLIZA</span>` : '';
+}
+// Muestra/oculta los datos bancarios del formulario según la forma de pago (no borra valores)
+function toggleBancoWrap(pref){
+  const sel = document.getElementById(pref+'FormaPago');
+  const wrap = document.getElementById(pref+'BancoWrap');
+  if(sel && wrap) wrap.style.display = (sel.value === 'efectivo') ? 'none' : 'grid';
+}
 function badgeEstatus(c, estilo){
   const e = estatusDe(c);
   if(e === 'vacante') return `<span class="badge" style="background:rgba(150,150,150,.25);color:#bbb;${estilo||''}">🔲 VACANTE</span>`;
@@ -1420,7 +1456,7 @@ function renderContratos(data){
       <td><div class="td-renta">${fM(c.r)}</div></td>
       <td style="font-size:11px;">${fF(c.fin)}</td>
       <td><span style="font-family:'Orbitron',sans-serif;font-size:11px;color:${d<0?'var(--danger)':d<=30?'var(--warn)':'rgba(255,255,255,.5)'}">${d<0?Math.abs(d)+'v':d+'d'}</span></td>
-      <td>${badgeE(c)}</td>
+      <td>${badgeE(c)}${badgePoliza(c,'margin-left:4px;')}</td>
       <td>${badgeP(c)}</td>
       <td onclick="event.stopPropagation()"><button class="btn-xs teal" onclick="abrirModal(${c.id})">👁️</button> <button class="btn-xs teal" onclick="irComun(${c.id})">✉️</button> <button class="btn-xs" style="background:#3D7A75;color:#fff;" onclick="abrirEditarContrato(${c.id})">✏️</button>${currentRole==='Administrador'?` <button class="btn-xs" style="background:#7a1a1a;color:#fff;" onclick="eliminarContrato(${c.id})">🗑️</button>`:''}</td>
     </tr>`;
@@ -1461,7 +1497,7 @@ function abrirModal(id){
   const d=dias(c.fin);
   document.getElementById('modalTit').textContent=`${c.ub} · ${c.u}`;
   document.getElementById('modalBody').innerHTML=`
-    <div style="margin-bottom:14px;">${badgeE(c)} ${c.pol?`<span class="badge badge-teal" style="margin-left:6px;font-size:10px;">${c.pol}</span>`:''} ${(c.nt||'').includes('LOCAL')?'<span class="badge badge-blue" style="margin-left:6px;">🏪 Local Comercial</span>':''}</div>
+    <div style="margin-bottom:14px;">${badgeE(c)} ${badgePoliza(c,'margin-left:6px;')} ${c.pol?`<span class="badge badge-teal" style="margin-left:6px;font-size:10px;">${c.pol}</span>`:''} ${(c.nt||'').includes('LOCAL')?'<span class="badge badge-blue" style="margin-left:6px;">🏪 Local Comercial</span>':''}</div>
     <div class="modal-grid">
       <div class="modal-field"><label>Inquilino</label><span>${c.inq}</span></div>
       <div class="modal-field"><label>Unidad</label><span>${c.u}</span></div>
@@ -1891,6 +1927,7 @@ function renderPagos(){
           ? `<span style="font-size:12px;color:#bbb;font-weight:600;">🔲 Vacante${c.fechaDesocupacion?` · entregado ${fF(c.fechaDesocupacion)}`:''}</span>`
           : `<span style="font-size:12px;color:${col};font-weight:600;">${iconos[em.estado]} ${em.label}</span>`}
         ${badgeEstatus(c)===''||esVacante?'':badgeEstatus(c)}
+        ${badgePoliza(c)}
         ${em.estado==='parcial'?`<span style="font-size:10px;color:rgba(255,255,255,.5);">(${fM(em.pagadoMes)} de ${fM(em.cargoMes)})</span>`:''}
         ${em.fila&&em.fila.mora>0?`<span style="font-size:10px;color:var(--danger);">+mora ${fM(em.fila.mora)}</span>`:''}
       </div>
@@ -3631,6 +3668,9 @@ function _genDoc(tipo){
     const numEst=String(c.caj||'').trim();
     const incEst=(c.est!==undefined ? !!c.est : !!numEst);
     const garTipo = c.garantia || 'Póliza de arrendamiento';
+    // v34w: modo "solo póliza" → el propietario es "LA ARRENDADORA"; Moctezuma solo emite la póliza.
+    const esPol = esPoliza(c);
+    const arrNomMAY = esPol ? arrendadorDe(c).toUpperCase() : 'Lic. ÁNGEL ALBERTO FLORES MOCTEZUMA';
     const tipoInm = c.tipoInmueble || 'local_comercial';
     const esIndependiente = tipoInm === 'casa_independiente';
     const S=`<p style="margin:0 0 9pt;text-align:justify;font-size:12pt;font-family:Arial;line-height:1.15;">`;
@@ -3658,7 +3698,7 @@ function _genDoc(tipo){
     \u003C!-- TABLA INFO --\u003E
     <table style="width:100%;border-collapse:collapse;font-size:11pt;font-family:Arial;margin-bottom:10pt;">
       <tr>
-        <td style="padding:5pt 8pt;border:1pt solid #000;width:50%;"><strong>Administrado por:</strong><br>Moctezuma Administradora Inteligente</td>
+        <td style="padding:5pt 8pt;border:1pt solid #000;width:50%;"><strong>${esPol?'Póliza emitida por:':'Administrado por:'}</strong><br>Moctezuma Administradora Inteligente</td>
         <td style="padding:5pt 8pt;border:1pt solid #000;">Garantía del contrato<br>${garTipo}</td>
       </tr>
       <tr>
@@ -3674,10 +3714,10 @@ function _genDoc(tipo){
     \u003C!-- DECLARACIONES --\u003E
     <div style="text-align:center;margin:12pt 0 8pt;"><strong style="font-size:13pt;">D E C L A R A C I O N E S</strong></div>
     <p style="margin:0 0 6pt;font-size:12pt;font-family:Arial;font-weight:bold;">I.- DECLARACIONES DE "LA ARRENDADORA"</p>
-    ${S}Declara el ${B}Lic. ÁNGEL ALBERTO FLORES MOCTEZUMA${Be}, quien para efectos de este contrato será denominado ${B}"LA ARRENDADORA"${Be}:${Pe}
+    ${S}Declara ${esPol?'':'el '}${B}${arrNomMAY}${Be}, quien para efectos de este contrato será denominado ${B}"LA ARRENDADORA"${Be}:${Pe}
     <ul style="margin:0 0 8pt;padding-left:20pt;font-size:12pt;font-family:Arial;line-height:1.15;">
       <li style="margin-bottom:5pt;text-align:justify;">Que tiene plena capacidad legal para la celebración de este acto, encontrándose en pleno goce y ejercicio de sus derechos civiles sin restricción alguna.</li>
-      <li style="margin-bottom:5pt;text-align:justify;">Que cuenta con facultades expresas del propietario del inmueble para darlo en arrendamiento en su nombre y representación, en términos del Contrato de Arrendamiento Profesional, lo cual acredita mediante el referido instrumento.</li>
+      <li style="margin-bottom:5pt;text-align:justify;">${esPol?'Que es propietario del inmueble descrito en este contrato y cuenta con la libre disposición del mismo para darlo en arrendamiento.':'Que cuenta con facultades expresas del propietario del inmueble para darlo en arrendamiento en su nombre y representación, en términos del Contrato de Arrendamiento Profesional, lo cual acredita mediante el referido instrumento.'}</li>
       <li style="margin-bottom:5pt;text-align:justify;">Que es su libre voluntad dar en arrendamiento el inmueble descrito en este contrato, en los términos y condiciones aquí establecidos.</li>
     </ul>
     <p style="margin:8pt 0 6pt;font-size:12pt;font-family:Arial;font-weight:bold;">II.- DECLARACIONES DE "LA ARRENDATARIA"</p>
@@ -3690,7 +3730,7 @@ function _genDoc(tipo){
     ${c.obl?`<p style="margin:8pt 0 6pt;font-size:12pt;font-family:Arial;font-weight:bold;">III.- DECLARACIONES DE "EL OBLIGADO SOLIDARIO"</p>
     ${S}Declara ${B}${c.obl.toUpperCase()}${Be}, quien para efectos de este contrato será denominado ${B}"EL OBLIGADO SOLIDARIO"${Be}:${Pe}
     <ul style="margin:0 0 8pt;padding-left:20pt;font-size:12pt;font-family:Arial;line-height:1.15;">
-      <li style="margin-bottom:5pt;text-align:justify;">Que conoce íntegramente el contenido y alcances del presente contrato de arrendamiento, y que de manera libre y voluntaria acepta constituirse como obligado solidario de ${B}"LA ARRENDATARIA"${Be} en el cumplimiento de todas y cada una de las obligaciones derivadas del mismo.</li>
+      <li style="margin-bottom:5pt;text-align:justify;">Que conoce íntegramente el contenido y alcances del presente contrato de arrendamiento, y que de manera libre y voluntaria acepta constituirse como obligado solidario de ${B}"LA ARRENDATARIA"${Be}${esPol?`, en favor de ${B}"LA ARRENDADORA"${Be} (${B}${arrNomMAY}${Be}),`:''} en el cumplimiento de todas y cada una de las obligaciones derivadas del mismo.</li>
       <li style="margin-bottom:5pt;text-align:justify;">Que responderá solidariamente con su patrimonio en caso de incumplimiento de cualquiera de las obligaciones a cargo de ${B}"LA ARRENDATARIA"${Be}, incluyendo de manera enunciativa mas no limitativa, el pago de rentas, depósitos, penalizaciones, daños al inmueble y cualquier otra cantidad que se adeude con motivo del presente contrato.</li>
       <li style="margin-bottom:5pt;text-align:justify;">Que tiene plena capacidad legal y económica para asumir las obligaciones derivadas de esta garantía solidaria, sin limitación alguna.</li>
     </ul>`:''}
@@ -3706,7 +3746,9 @@ function _genDoc(tipo){
       :`${S}Las partes hacen constar que el presente arrendamiento ${B}no incluye cajón de estacionamiento${Be}, por lo que ${B}"LA ARRENDATARIA"${Be} no tendrá derecho de uso sobre área alguna destinada a tal fin dentro del inmueble${esIndependiente?'':' o condominio'}.${Pe}`}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEGUNDA.- FACULTAD DE ARRENDAMIENTO Y VIGENCIA</p>
-    ${S}${B}"LA ARRENDADORA"${Be} actúa con fundamento en las facultades otorgadas por el propietario del inmueble, de conformidad con el Contrato de Arrendamiento Profesional referido en las Declaraciones, por lo que está plenamente facultada para celebrar el presente instrumento. ${B}"LA ARRENDATARIA"${Be} declara conocer esta circunstancia y la acepta expresamente.${Pe}
+    ${esPol
+      ?`${S}${B}"LA ARRENDADORA"${Be} celebra el presente instrumento en su carácter de propietaria del inmueble, por lo que está plenamente facultada para darlo en arrendamiento. ${B}"LA ARRENDATARIA"${Be} declara conocer esta circunstancia y la acepta expresamente.${Pe}`
+      :`${S}${B}"LA ARRENDADORA"${Be} actúa con fundamento en las facultades otorgadas por el propietario del inmueble, de conformidad con el Contrato de Arrendamiento Profesional referido en las Declaraciones, por lo que está plenamente facultada para celebrar el presente instrumento. ${B}"LA ARRENDATARIA"${Be} declara conocer esta circunstancia y la acepta expresamente.${Pe}`}
     ${S}La duración del presente contrato será de ${B}UN AÑO FORZOSO${Be}, con inicio el día ${B}${fLarga(c.ini)}${Be} y conclusión el día ${B}${fLarga(c.fin)}${Be}. Al término del plazo, el contrato no se prorrogará de manera tácita; para su renovación se requerirá la celebración de un nuevo instrumento escrito firmado por ambas partes.${Pe}
     ${S}${B}"LA ARRENDATARIA"${Be} no podrá dar por terminado el contrato de manera anticipada. En caso de solicitar la terminación anticipada, perderá en favor de ${B}"LA ARRENDADORA"${Be} la totalidad del depósito en garantía, como pena convencional, sin perjuicio de las rentas que queden pendientes hasta el término del plazo forzoso. Para la devolución del inmueble al vencimiento del contrato, ${B}"LA ARRENDATARIA"${Be} deberá notificar su intención de no renovar con al menos 30 días naturales de anticipación; de no hacerlo, contará con 30 días naturales adicionales para la desocupación, durante los cuales seguirá obligada al pago de la renta proporcional. En caso de no dar aviso de su voluntad de renovar el contrato se tiene por consentido tácitamente su voluntad de renovar por otro año el presente contrato, en consecuencia se deberá firmar en la fecha de término de este contrato el convenio de renovación con las actualizaciones de incremento de renta${mantIncl?'':(esIndependiente?'':' y en su caso el incremento proporcional del costo de la cuota de mantenimiento si se hubiera determinado así por la Asamblea General de Condóminos, en caso de que el inmueble esté sujeto al régimen de propiedad en condominio')}.${Pe}
 
@@ -3725,7 +3767,9 @@ function _genDoc(tipo){
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">QUINTA.- MONTO Y FORMA DE PAGO DE LA RENTA</p>
     ${S}Las partes acuerdan que el precio mensual por concepto de arrendamiento es de ${B}${mStr(c.r)}${Be} (${B}${nLetras(c.r)} PESOS 00/100 M.N.${Be}), pagaderos a más tardar el día ${B}${diaNum(c.ini)}${Be} de cada mes calendario.${esIndependiente?'':(mantIncl?` Dicho precio ${B}incluye la cuota de mantenimiento${Be} del inmueble, por lo que ${B}"LA ARRENDATARIA"${Be} no deberá realizar pago adicional alguno por dicho concepto.`:` Dicho precio ${B}no incluye la cuota de mantenimiento${Be} del inmueble, la cual deberá ser cubierta por ${B}"LA ARRENDATARIA"${Be} de manera adicional e independiente a la renta, conforme a lo establecido en la Cláusula Cuarta.`)}${Pe}
-    ${S}El pago deberá realizarse en la fecha pactada mediante depósito o transferencia bancaria${c.bco?` en ${B}${c.bco}${Be}`:''}${c.cta?`, cuenta ${B}${c.cta}${Be}`:''}${c.clabe?`, CLABE interbancaria ${B}${c.clabe}${Be}`:''}${c.tit?`, a nombre de ${B}${c.tit}${Be}`:''}, siendo el comprobante de transferencia el único instrumento válido de pago, salvo que se acuerde otra modalidad por escrito con ${B}"LA ARRENDADORA"${Be}.${Pe}
+    ${esPagoEfectivo(c)
+      ?`${S}Las partes pactan que el precio por concepto de arrendamiento del bien objeto del contrato se realizará mediante pago en efectivo, transferencia o mediante código para retiro sin tarjeta; una vez realizado el pago se deberá enviar el comprobante de pago al correo moctezuma.adm@gmail.com para confirmar su recepción.${Pe}`
+      :`${S}El pago deberá realizarse en la fecha pactada mediante depósito o transferencia bancaria${c.bco?` en ${B}${c.bco}${Be}`:''}${c.cta?`, cuenta ${B}${c.cta}${Be}`:''}${c.clabe?`, CLABE interbancaria ${B}${c.clabe}${Be}`:''}${c.tit?`, a nombre de ${B}${c.tit}${Be}`:''}, siendo el comprobante de transferencia el único instrumento válido de pago, salvo que se acuerde otra modalidad por escrito con ${B}"LA ARRENDADORA"${Be}.${Pe}`}
     ${S}Al momento de la firma del presente contrato, ${B}"LA ARRENDATARIA"${Be} realiza el pago de ${B}${mStr(c.r)}${Be} por concepto de la primera renta correspondiente al primer mes de la fecha de firma de este contrato, entendiéndose por el periodo de 30 días inmediatos después de la firma.${Pe}
 
     <p style="margin:10pt 0 4pt;font-size:12pt;font-family:Arial;font-weight:bold;">SEXTA.- DEPÓSITO EN GARANTÍA</p>
@@ -3797,7 +3841,7 @@ function _genDoc(tipo){
           <div style="height:50pt;"></div>
           <div style="border-top:1pt solid #000;padding-top:6pt;">
             <strong>"LA ARRENDADORA"</strong><br>
-            <strong>Lic. ÁNGEL ALBERTO FLORES MOCTEZUMA</strong><br>
+            <strong>${arrNomMAY}</strong><br>
             Nombre y firma
           </div>
         </td>
@@ -3857,6 +3901,9 @@ function _genDoc(tipo){
   }else if(tipo==='poliza'){
     const polLogoB64 = LOGO_B64;
     const polNum=c.pol||`POLARR/NUEVO/001/${hoy.getFullYear()}`;
+    // v34w: en modo "solo póliza" el beneficiario/arrendador es el propietario (c.prop)
+    const esPolP=esPoliza(c);
+    const benefP=beneficiarioDe(c);
     const dir=(c.dir||`${c.ub}, ${c.u}, ${c.al}, Ciudad de México`);
     const MESES_P=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
     const fLargaP=s=>{if(!s)return'___';s=String(s).slice(0,10);const[y,m,d]=s.split('-');return`${parseInt(d)} de ${MESES_P[parseInt(m)-1]} de ${y}`;};
@@ -3908,8 +3955,8 @@ function _genDoc(tipo){
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#0F2027;color:#7BADA8;font-weight:bold;width:42%;">PÓLIZA No.</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;font-weight:bold;">${polNum}</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">COBERTURA</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">TRADICIONAL: DESOCUPACIÓN LEGAL DEL INMUEBLE</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">DIRECCIÓN DEL INMUEBLE</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${dir}</td></tr>
-      <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">ARRENDADOR</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">Lic. Ángel Alberto Flores Moctezuma</td></tr>
-      <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">DOMICILIO ARRENDADOR</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">Bolívar #8, Despacho 205, Colonia Centro, Alcaldía Cuauhtémoc, C.P. 06000, Ciudad de México</td></tr>
+      <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">ARRENDADOR</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${benefP}</td></tr>
+      ${esPolP?'':`<tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">DOMICILIO ARRENDADOR</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">Bolívar #8, Despacho 205, Colonia Centro, Alcaldía Cuauhtémoc, C.P. 06000, Ciudad de México</td></tr>`}
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">ARRENDATARIO</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${c.inq}</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">DOMICILIO ARRENDATARIO</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${dir}</td></tr>
       <tr><td style="padding:6pt 8pt;border:1pt solid #3D7A75;background:#f4f6f7;font-weight:bold;">VIGENCIA DEL CONTRATO</td><td style="padding:6pt 8pt;border:1pt solid #3D7A75;">${fLargaP(c.ini)} al ${fLargaP(c.fin)}</td></tr>
@@ -4038,7 +4085,7 @@ function _genDoc(tipo){
         <td style="padding:8pt;border:1pt solid #ccc;text-align:center;vertical-align:bottom;">
           <div style="height:45pt;"></div>
           <div style="border-top:1pt solid #0F2027;padding-top:6pt;">
-            ${BP}${c.inq.toUpperCase()}${BPe}<br>
+            ${BP}${(esPolP?benefP:c.inq).toUpperCase()}${BPe}<br>
             El Arrendador / Beneficiario
           </div>
         </td>
@@ -4326,7 +4373,7 @@ function _genDoc(tipo){
         \u003C!-- Párrafo 1 --\u003E
         <p style="font-size:10pt;text-align:justify;line-height:1.5;margin:0 0 8pt;">
           <strong>DEBO Y PAGARÉ INCONDICIONALMENTE</strong> a la orden de
-          <strong>Lic. Ángel Alberto Flores Moctezuma</strong>, la cantidad de
+          <strong>${beneficiarioDe(c)}</strong>, la cantidad de
           <strong>${mStrP(c.r)} (${nLetrasP(c.r)} PESOS 00/100 M.N.)</strong>
           en el domicilio ubicado en <strong>${dirP}</strong>
         </p>
@@ -4696,6 +4743,7 @@ function toggleEstacionamiento(p){
 function abrirNuevoContrato(){
   document.getElementById('frmNuevo').reset();
   toggleEstacionamiento('n');
+  toggleBancoWrap('n');   // tras reset() la forma de pago vuelve a 'cuenta': mostrar datos bancarios
   // Fecha inicio por defecto = hoy
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
   // Fecha fin = 1 año después
@@ -4753,7 +4801,8 @@ function guardarNuevoContrato(e){
     estatus: 'activo',
     fechaDesocupacion: '',
     modoAdmin: document.getElementById('nModoAdmin').value,
-    pctComision: Number(document.getElementById('nPctCom').value) || 0
+    pctComision: Number(document.getElementById('nPctCom').value) || 0,
+    formaPago: document.getElementById('nFormaPago').value || 'cuenta'
   };
   C.push(nuevo);
   cerrarNuevoContrato();
@@ -4815,6 +4864,8 @@ function abrirEditarContrato(id){
   document.getElementById('eModoAdmin').value = c.modoAdmin || 'comision';
   document.getElementById('ePctCom').value = c.pctComision || '';
   document.getElementById('ePctComWrap').style.display = esIntegral(c) ? 'block' : 'none';
+  document.getElementById('eFormaPago').value = c.formaPago || 'cuenta';
+  toggleBancoWrap('e');
   // Estatus
   document.getElementById('eEstatus').value = estatusDe(c);
   document.getElementById('eFechaDesoc').value = toDateInput(c.fechaDesocupacion);
@@ -4903,6 +4954,7 @@ function guardarEdicionContrato(e){
     nt:    document.getElementById('eNt').value.trim(),
     modoAdmin: document.getElementById('eModoAdmin').value,
     pctComision: Number(document.getElementById('ePctCom').value) || 0,
+    formaPago: document.getElementById('eFormaPago').value || 'cuenta',
     estatus: document.getElementById('eEstatus').value,
     fechaDesocupacion: document.getElementById('eEstatus').value==='vacante' ? document.getElementById('eFechaDesoc').value : '',
     adeudoIni: currentRole==='Administrador' ? (Number(document.getElementById('eAdeudoIni').value)||0) : (C[idx].adeudoIni||0),
