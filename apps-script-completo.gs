@@ -3,7 +3,7 @@
 // Google Apps Script — v34p (Web App + Permisos + Auditoría + Pagos + Gastos)
 // ═══════════════════════════════════════════════════════
 
-const SCRIPT_VERSION = 'v34w';
+const SCRIPT_VERSION = 'v34x';
 
 const SHEET_NAME   = 'Contratos';
 const ACCESO_SHEET = 'ACCESO';
@@ -165,7 +165,14 @@ function getAllContratos() {
     if (obj.fin instanceof Date) obj.fin = Utilities.formatDate(obj.fin, 'America/Mexico_City', 'yyyy-MM-dd');
     if (obj.pol === '' || obj.pol === 'null') obj.pol = null;
     if (obj.mant === true || obj.mant === 'true' || obj.mant === 'TRUE') obj.mant = true;
-    else if (obj.mant === false || obj.mant === 'false' || obj.mant === 'FALSE' || obj.mant === '') obj.mant = false;
+    else if (obj.mant === false || obj.mant === 'false' || obj.mant === 'FALSE') obj.mant = false;
+    // v34x: celda vacía = "nunca se guardó". Se omite el campo para que la app siga
+    // aplicando sus respaldos (mant: "incluido" en notas; est: número de cajón) y los
+    // contratos existentes no cambien hasta que se editen y guarden.
+    if (obj.mant === '') delete obj.mant;
+    if (obj.est === '') delete obj.est;
+    else if (obj.est === 'true' || obj.est === 'TRUE') obj.est = true;
+    else if (obj.est === 'false' || obj.est === 'FALSE') obj.est = false;
     result.push(obj);
   }
   return result;
@@ -317,14 +324,18 @@ function ensureSchema_() {
       fila1[col - 1] = h;
       info.columnasAgregadas.push(h);
     });
-    // v34w: formaPago ('cuenta' | 'efectivo'). Se agrega SIEMPRE al final de la
-    // fila 1 (después de pctComision), sin mover ni renombrar columnas.
-    if (fila1.indexOf('formaPago') < 0) {
-      const colFP = fila1.length + 1;
-      contratos.getRange(1, colFP).setValue('formaPago');
-      fila1.push('formaPago');
-      info.columnasAgregadas.push('formaPago');
-    }
+    // v34w: formaPago ('cuenta' | 'efectivo').
+    // v34x: columnas que el formulario ya enviaba pero NO existían en la hoja, por lo
+    // que save/update (que mapean por encabezado) las descartaban y al recargar la app
+    // se perdían: estacionamiento, cuota incluida, tipo, giro, tipo de inmueble,
+    // garantía y cláusulas adicionales.
+    // Todas se agregan SIEMPRE al final de la fila 1, sin mover ni renombrar columnas.
+    ['formaPago','est','mant','tipo','giro','tipoInmueble','garantia','clausulas_add'].forEach(h => {
+      if (fila1.indexOf(h) >= 0) return;
+      contratos.getRange(1, fila1.length + 1).setValue(h);
+      fila1.push(h);
+      info.columnasAgregadas.push(h);
+    });
   }
   return info;
 }
@@ -336,7 +347,7 @@ function migrarColumnas() {
   const sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) return { ok: false, error: 'Hoja no encontrada' };
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const faltan = ['estatus','fechaDesocupacion','modoAdmin','pctComision','formaPago'].filter(h => headers.indexOf(h) < 0);
+  const faltan = ['estatus','fechaDesocupacion','modoAdmin','pctComision','formaPago','est','mant','tipo','giro','tipoInmueble','garantia','clausulas_add'].filter(h => headers.indexOf(h) < 0);
   faltan.forEach((h, i) => sheet.getRange(1, headers.length + 1 + i).setValue(h));
   return { ok: true, agregadas: faltan, encabezados: headers.concat(faltan) };
 }
