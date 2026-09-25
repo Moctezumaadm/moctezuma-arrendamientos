@@ -1,7 +1,30 @@
 CÓMO DESPLEGAR UNA NUEVA VERSIÓN DE index.html EN APPS SCRIPT
 ==============================================================
 Proyecto: Moctezuma — Control de Arrendamientos
-Última versión: v34v (04-sep-2026)
+Última versión: v34y (25-sep-2026) — app v34y + script v34y
+
+
+>>> v34y: ESTA VERSIÓN SÍ CAMBIA LOS DOS ARCHIVOS <<<
+------------------------------------------------------
+v34y agrega el DEPÓSITO EN GARANTÍA en Pagos (columna nueva "concepto" en la
+pestaña PAGOS: renta | deposito | devolucion; vacío = renta). Orden obligatorio:
+
+  a) Pegar apps-script-completo.gs en Código.gs, guardar, y publicar Nueva
+     versión (paso 3) — descripción: "v34y script — concepto en PAGOS".
+  b) Abrir  <URL de la app>?action=setup
+     -> debe responder "version":"v34y" y, la primera vez,
+        "columnasAgregadas" con "PAGOS.concepto".
+     Revisar en el Sheet que PAGOS tenga "concepto" AL FINAL de la fila 1
+     (ninguna columna movida). Las filas viejas quedan vacías = renta.
+  c) Pegar index.html (pasos 1-2), guardar y publicar Nueva versión.
+  d) Verificar en incógnito: login dice "v34y · Sistema listo"; en Registrar
+     Pago aparece el selector Concepto; el corte de Dr Velasco 106 da los
+     MISMOS números que antes (sin depósitos no aparece el bloque de
+     depósito); corteDebugTabla igual que antes.
+
+Si se publica el index SIN el script, los depósitos se guardarían en el Sheet
+sin concepto y al recargar se leerían como RENTA. Por eso primero el script.
+
 
 El código de la app (index.html) se sirve desde Apps Script. Cada vez que cambia
 el archivo local hay que copiarlo al editor de Apps Script y publicar una nueva

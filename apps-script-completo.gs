@@ -3,7 +3,7 @@
 // Google Apps Script — v34p (Web App + Permisos + Auditoría + Pagos + Gastos)
 // ═══════════════════════════════════════════════════════
 
-const SCRIPT_VERSION = 'v34x';
+const SCRIPT_VERSION = 'v34y';
 
 const SHEET_NAME   = 'Contratos';
 const ACCESO_SHEET = 'ACCESO';
@@ -256,6 +256,8 @@ function getPagos() {
     }
     if (obj.cid) obj.cid = Number(obj.cid);
     if (obj.monto) obj.monto = Number(obj.monto);
+    // v34y: concepto 'renta' | 'deposito' | 'devolucion'. Vacío (filas anteriores) = renta.
+    obj.concepto = String(obj.concepto || '').trim() || 'renta';
     result.push(obj);
   }
   return result;
@@ -266,14 +268,18 @@ function savePago(pago) {
   let sheet = ss.getSheetByName(PAGOS_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(PAGOS_SHEET);
-    const headers = ['cid','periodo','fecha','monto','comprobante','referencia','nota','usuario','timestamp'];
+    const headers = ['cid','periodo','fecha','monto','comprobante','referencia','nota','usuario','timestamp','concepto'];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length).setBackground('#0F2027').setFontColor('#7BADA8').setFontWeight('bold');
   }
+  // v34y: concepto del movimiento; si no viene (o no es válido), es renta.
+  const concepto = String(pago.concepto || '').trim().toLowerCase();
+  pago.concepto = (concepto === 'deposito' || concepto === 'devolucion') ? concepto : 'renta';
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map(h => pago[h] !== undefined ? pago[h] : '');
   sheet.appendRow(row);
-  registrarAudit(pago.usuario || '', '', 'PAGO_REGISTRADO', pago.cid, (pago.periodo || '') + ' — $' + (pago.monto || 0));
+  registrarAudit(pago.usuario || '', '', 'PAGO_REGISTRADO', pago.cid,
+    (pago.concepto !== 'renta' ? '[' + pago.concepto + '] ' : '') + (pago.periodo || '') + ' — $' + (pago.monto || 0));
   return { ok: true };
 }
 
@@ -336,6 +342,17 @@ function ensureSchema_() {
       fila1.push(h);
       info.columnasAgregadas.push(h);
     });
+  }
+
+  // v34y: columna 'concepto' en PAGOS (renta | deposito | devolucion). Se agrega AL
+  // FINAL de la fila 1 sin mover columnas; las filas existentes quedan vacías y se leen como renta.
+  const pagos = ss.getSheetByName(PAGOS_SHEET);
+  if (pagos && pagos.getLastColumn() > 0) {
+    const filaP = pagos.getRange(1, 1, 1, pagos.getLastColumn()).getValues()[0];
+    if (filaP.indexOf('concepto') < 0) {
+      pagos.getRange(1, filaP.length + 1).setValue('concepto');
+      info.columnasAgregadas.push('PAGOS.concepto');
+    }
   }
   return info;
 }

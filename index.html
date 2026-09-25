@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34w</title>
+<title>Moctezuma — Control de Arrendamientos v34y</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34w · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34y · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -984,9 +984,18 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
       <div id="pagoInfo" style="background:#EAF4F3;border-left:3px solid #3D7A75;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:18px;font-size:13px;color:#333;line-height:1.6;"></div>
       <form id="frmPago" onsubmit="guardarPago(event)">
         <input type="hidden" id="pCid">
+        <div style="margin-bottom:14px;">
+          <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Concepto *</label>
+          <select id="pConcepto" onchange="pagoConceptoCambio()" style="width:100%;padding:9px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;background:#fff;">
+            <option value="renta">Renta</option>
+            <option value="deposito">Depósito recibido</option>
+            <option value="devolucion">Devolución de depósito</option>
+          </select>
+          <div id="pConceptoHint" style="font-size:11px;color:#888;margin-top:4px;"></div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
           <div>
-            <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Periodo que cubre *</label>
+            <label id="pPeriodoLbl" style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Periodo que cubre *</label>
             <input id="pPeriodo" type="month" required style="width:100%;padding:9px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;">
           </div>
           <div>
@@ -1008,12 +1017,12 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           <label for="pComprobante" style="font-size:13px;color:#444;cursor:pointer;margin:0;">📎 Comprobante recibido</label>
         </div>
         <div style="margin-bottom:18px;">
-          <label style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Nota (opcional)</label>
+          <label id="pNotaLbl" style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Nota (opcional)</label>
           <textarea id="pNota" rows="2" placeholder="Observaciones..." style="width:100%;padding:9px;border:1px solid #ccc;border-radius:6px;font-size:13px;box-sizing:border-box;resize:vertical;"></textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;gap:12px;">
           <button type="button" onclick="cerrarRegistroPago()" style="padding:10px 24px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;font-size:13px;">Cancelar</button>
-          <button type="submit" style="padding:10px 24px;background:#3D7A75;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">💾 Registrar Pago</button>
+          <button type="submit" id="pSubmit" style="padding:10px 24px;background:#3D7A75;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;">💾 Registrar Pago</button>
         </div>
       </form>
     </div>
@@ -1074,7 +1083,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34w — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34y — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1209,7 +1218,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34w · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34y · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1539,7 +1548,33 @@ function abrirModal(id){
 function closeModal(){document.getElementById('modalOv').classList.remove('open');}
 
 // ===== PAGOS / CONTABILIDAD DE RENTAS =====
-let PAGOS = [];          // {cid, periodo, fecha, monto, comprobante, referencia, nota, usuario, timestamp}
+let PAGOS = [];          // {cid, periodo, fecha, monto, comprobante, referencia, nota, usuario, timestamp, concepto}
+// Concepto del movimiento en PAGOS (v34y): 'renta' | 'deposito' | 'devolucion'.
+// Vacío o desconocido = renta (filas previas a v34y). Depósitos y devoluciones NO
+// son renta: no reducen el adeudo, no entran al FIFO, ni al cobrado/comisión del corte.
+const CONCEPTOS_PAGO = {renta:'Renta', deposito:'Depósito recibido', devolucion:'Devolución de depósito'};
+function conceptoPago(p){
+  const k = String((p && p.concepto) || '').trim().toLowerCase();
+  return (k === 'deposito' || k === 'devolucion') ? k : 'renta';
+}
+function esPagoRenta(p){ return conceptoPago(p) === 'renta'; }
+// Depósito en resguardo de un contrato = Σ depósitos − Σ devoluciones (hasta una fecha, opcional).
+function depositoResguardo(cid, hastaDate){
+  let recibido = 0, devuelto = 0;
+  PAGOS.forEach(p => {
+    if(Number(p.cid) !== Number(cid) || esPagoRenta(p)) return;
+    if(hastaDate && parseFecha(p.fecha) > hastaDate) return;
+    const m = Number(p.monto) || 0;
+    if(conceptoPago(p) === 'deposito') recibido += m; else devuelto += m;
+  });
+  return {recibido: r2(recibido), devuelto: r2(devuelto), saldo: r2(recibido - devuelto)};
+}
+// Etiqueta visual del concepto (estado de cuenta y listas de pagos).
+function badgeConcepto(p){
+  const k = conceptoPago(p);
+  const st = {renta:'background:#e3f1ec;color:#1E7B4F;', deposito:'background:#e6eefc;color:#1f4e9c;', devolucion:'background:#fdeede;color:#9c5a1f;'}[k];
+  return `<span style="${st}font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;">${CONCEPTOS_PAGO[k]}</span>`;
+}
 // Gasto: {id, fecha:'YYYY-MM-DD', ubicacion, contratoId ('' = gasto general del
 // edificio), categoria, concepto, monto, comprobante:'Sí'|'', nota, usuario, timestamp}
 const CATEGORIAS_GASTO = ['mantenimiento','servicios','predial-agua','reparaciones','legales','otros'];
@@ -1786,7 +1821,8 @@ function calcularEstadoCuenta(c, hastaDate, pagosHastaDate){
   // contable (fechaCorte) pertenecen a la cuenta vieja ya cortada y NO se
   // aplican: esa historia queda resumida en adeudoIni (o en "pagado hasta").
   const corte = c.fechaCorte ? parseFecha(c.fechaCorte) : null;
-  const pagosTodos = PAGOS.filter(p => Number(p.cid) === c.id)
+  // Solo pagos de RENTA (concepto vacío = renta). Depósitos/devoluciones nunca abonan al adeudo.
+  const pagosTodos = PAGOS.filter(p => Number(p.cid) === c.id && esPagoRenta(p))
     .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
   const pagosCorte = corte ? pagosTodos.filter(p => p._f >= corte) : pagosTodos;
@@ -1932,6 +1968,8 @@ function renderPagos(){
         ${em.fila&&em.fila.mora>0?`<span style="font-size:10px;color:var(--danger);">+mora ${fM(em.fila.mora)}</span>`:''}
       </div>
       <div class="pago-detail" style="margin-bottom:8px;">${esVacante?'Sin cargos nuevos; el adeudo pendiente se conserva':'Vence día '+c.dp+(c.gr?` (+${c.gr}d gracia)`:'')+(ec.primerAtraso&&ec.primerAtraso.tipo!=='inicial'?` · atraso desde ${ec.primerAtraso.periodo}`:'')}</div>
+      ${(()=>{ const dg = depositoResguardo(c.id); return Math.abs(dg.saldo) > 0.004
+        ? `<div class="pago-detail" style="margin-bottom:8px;">🔐 Depósito en resguardo: <b>${fM(dg.saldo)}</b></div>` : ''; })()}
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid rgba(123,173,168,.15);margin-bottom:8px;">
         <span style="font-size:11px;color:rgba(255,255,255,.5);">Adeudo acumulado:</span>
         <span style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:${ec.saldoTotal>0?'var(--danger)':'var(--success)'};">${fM(ec.saldoTotal)}</span>
@@ -2026,8 +2064,42 @@ function abrirRegistroPago(id){
   document.getElementById('pPeriodo').value = mesSel;
   document.getElementById('pMonto').value = c.r;
   document.getElementById('pMontoHint').textContent = `Sugerido: ${fM(c.r)} (renta completa)`;
+  document.getElementById('pConcepto').value = 'renta';
+  pagoConceptoCambio();
   document.getElementById('modalPago').style.display='block';
   document.body.style.overflow='hidden';
+}
+// Ajusta el formulario al concepto: renta (periodo obligatorio) · depósito / devolución
+// (periodo opcional, sin efecto en el FIFO; en devolución la nota es el motivo/deducciones).
+function pagoConceptoCambio(){
+  const k = document.getElementById('pConcepto').value;
+  const c = C.find(x=>x.id===Number(document.getElementById('pCid').value));
+  const per = document.getElementById('pPeriodo');
+  const esRenta = k === 'renta';
+  per.required = esRenta;
+  document.getElementById('pPeriodoLbl').textContent = esRenta ? 'Periodo que cubre *' : 'Periodo (opcional)';
+  document.getElementById('pNotaLbl').textContent = k === 'devolucion' ? 'Motivo / deducciones (opcional)' : 'Nota (opcional)';
+  document.getElementById('pNota').placeholder = k === 'devolucion' ? 'Ej: se descontó pintura $1,500 y limpieza $800...' : 'Observaciones...';
+  document.getElementById('pSubmit').textContent = esRenta ? '💾 Registrar Pago' : k === 'deposito' ? '💾 Registrar Depósito' : '💾 Registrar Devolución';
+  const hint = document.getElementById('pConceptoHint'), mHint = document.getElementById('pMontoHint'), monto = document.getElementById('pMonto');
+  if(!c){ hint.textContent = ''; return; }
+  const dg = depositoResguardo(c.id);
+  if(esRenta){
+    hint.textContent = '';
+    if(!per.value) per.value = mesSel;
+    monto.value = c.r;
+    mHint.textContent = `Sugerido: ${fM(c.r)} (renta completa)`;
+  } else if(k === 'deposito'){
+    hint.textContent = 'No abona a la renta ni al corte del dueño; queda en resguardo.';
+    per.value = '';
+    monto.value = Number(c.dep) || '';
+    mHint.textContent = `Depósito pactado en contrato: ${fM(Number(c.dep)||0)} · en resguardo: ${fM(dg.saldo)}`;
+  } else {
+    hint.textContent = 'Sale del depósito en resguardo; no afecta la renta ni el corte del dueño.';
+    per.value = '';
+    monto.value = dg.saldo > 0 ? dg.saldo : '';
+    mHint.textContent = `Depósito en resguardo: ${fM(dg.saldo)}`;
+  }
 }
 function cerrarRegistroPago(){
   document.getElementById('modalPago').style.display='none';
@@ -2037,8 +2109,10 @@ function guardarPago(e){
   e.preventDefault();
   const cid = Number(document.getElementById('pCid').value);
   const c = C.find(x=>x.id===cid);
+  const concepto = document.getElementById('pConcepto').value || 'renta';
   const pago = {
     cid: cid,
+    concepto: concepto,
     periodo: document.getElementById('pPeriodo').value,
     fecha: document.getElementById('pFecha').value,
     monto: Number(document.getElementById('pMonto').value),
@@ -2048,19 +2122,23 @@ function guardarPago(e){
     usuario: currentUser,
     timestamp: new Date().toISOString()
   };
+  if(concepto === 'devolucion'){
+    const dg = depositoResguardo(cid);
+    if(pago.monto > dg.saldo + 0.004 && !confirm(`La devolución (${fM(pago.monto)}) es mayor al depósito en resguardo (${fM(dg.saldo)}). ¿Registrarla de todos modos?`)) return;
+  }
   if(!confirmarSiMesCerrado(c.ub, [pago.fecha, pago.periodo])) return;
   PAGOS.push(pago);
   corteInvalidarCache(c.ub);
   cerrarRegistroPago();
-  registrarAuditoria('PAGO_REGISTRADO', cid, `${c.inq} — ${pago.periodo} — ${fM(pago.monto)}`);
+  registrarAuditoria('PAGO_REGISTRADO', cid, `${c.inq} — ${concepto!=='renta'?'['+CONCEPTOS_PAGO[concepto]+'] ':''}${pago.periodo} — ${fM(pago.monto)}`);
   renderPagos();
   // Sincronizar con Sheets
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=savePago&data=' + encodeURIComponent(JSON.stringify(pago)))
-      .then(()=> toast(`✅ Pago de ${c.inq} guardado en Sheets`,'success'))
+      .then(()=> toast(`✅ ${concepto==='renta'?'Pago':CONCEPTOS_PAGO[concepto]} de ${c.inq} guardado en Sheets`,'success'))
       .catch(err => toast('⚠️ Pago guardado localmente. Error Sheets: '+err.message,'warn'));
   } else {
-    toast(`✅ Pago registrado — ${fM(pago.monto)}`,'success');
+    toast(`✅ ${concepto==='renta'?'Pago registrado':CONCEPTOS_PAGO[concepto]+' registrado'} — ${fM(pago.monto)}`,'success');
   }
 }
 
@@ -2095,9 +2173,14 @@ function abrirEstadoCuenta(id){
   }).join('');
 
   const puedeEliminar = currentRole === 'Administrador';
-  const listaPagos = ec.pagos.length ? ec.pagos.map((p,i)=>
+  // Lista: pagos de renta aplicados + movimientos de depósito/devolución (todos, sin importar el corte contable).
+  const movDep = PAGOS.filter(p => Number(p.cid) === c.id && !esPagoRenta(p))
+    .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}));
+  const dg = depositoResguardo(c.id);
+  const listaMov = [...ec.pagos, ...movDep].sort((a,b) => a._f - b._f);
+  const listaPagos = listaMov.length ? listaMov.map((p,i)=>
     `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f4f6f7;border-radius:6px;margin-bottom:4px;font-size:12px;">
-       <span>${fF(String(p.fecha).slice(0,10))} · ${fM(p.monto)} · ${p.periodo}${p.referencia?' · '+p.referencia:''}</span>
+       <span>${badgeConcepto(p)} ${fF(String(p.fecha).slice(0,10))} · ${fM(p.monto)}${p.periodo?' · '+p.periodo:''}${p.referencia?' · '+p.referencia:''}${!esPagoRenta(p)&&p.nota?' · <i>'+p.nota+'</i>':''}</span>
        ${puedeEliminar?`<button onclick="eliminarPago(${c.id},'${p.timestamp}')" style="background:#7a1a1a;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">🗑️</button>`:''}
      </div>`).join('') : '<div style="font-size:12px;color:#999;padding:8px;">Sin pagos registrados</div>';
   const notaExcluidos = ec.pagosExcluidos > 0
@@ -2122,6 +2205,10 @@ function abrirEstadoCuenta(id){
         <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;">Mora pend.</div>
         <div style="font-family:'Orbitron',sans-serif;font-size:15px;color:#F39C12;font-weight:700;">${fM(ec.saldoMora)}</div>
       </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#e6eefc;border-radius:8px;padding:10px 14px;margin:-6px 0 18px;font-size:12px;color:#1f4e9c;">
+      <span>🔐 <b>Depósito en resguardo: ${fM(dg.saldo)}</b></span>
+      <span style="font-size:11px;">Recibido ${fM(dg.recibido)} · Devuelto ${fM(dg.devuelto)} · no abona a la renta</span>
     </div>
     <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Movimientos</div>
     <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:18px;max-height:340px;overflow-y:auto;">
@@ -2166,7 +2253,7 @@ function eliminarPago(cid, timestamp){
   if(cPago && !confirmarSiMesCerrado(cPago.ub, [pago.fecha, pago.periodo])) return;
   PAGOS.splice(idx,1);
   corteInvalidarCache(cPago ? cPago.ub : '');
-  registrarAuditoria('PAGO_ELIMINADO', cid, `${pago.periodo} — ${fM(pago.monto)}`);
+  registrarAuditoria('PAGO_ELIMINADO', cid, `${esPagoRenta(pago)?'':'['+CONCEPTOS_PAGO[conceptoPago(pago)]+'] '}${pago.periodo||''} — ${fM(Number(pago.monto)||0)}`);
   if(SHEETS_URL && sheetsConectado){
     jsonpFetch(SHEETS_URL + '?action=deletePago&data=' + encodeURIComponent(JSON.stringify({cid:cid,timestamp:timestamp})) + '&user=' + encodeURIComponent(currentUser))
       .catch(err => console.warn('Delete pago error:', err));
@@ -2198,6 +2285,7 @@ function imprimirEstadoCuenta(id){
     <table><thead><tr><th>Fecha</th><th>Concepto</th><th style="text-align:right;">Cargo</th><th style="text-align:right;">Abono</th><th style="text-align:right;">Saldo</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="tot"><strong>Total cargos:</strong> ${fM(ec.totalCargo)} · <strong>Total pagado:</strong> ${fM(ec.totalPagado)} · <strong>Saldo pendiente:</strong> ${fM(ec.saldoTotal)}</div>
     ${ec.pagosExcluidos>0?`<p style="font-size:10px;color:#666;">Nota: ${ec.pagosExcluidos} pago(s) por ${fM(ec.montoExcluido)} anteriores al corte contable no se aplican a esta cuenta.</p>`:''}
+    ${(()=>{ const dg = depositoResguardo(c.id); return (dg.recibido||dg.devuelto) ? `<p><strong>Depósito en resguardo:</strong> ${fM(dg.saldo)} (recibido ${fM(dg.recibido)} · devuelto ${fM(dg.devuelto)}). No forma parte de los abonos a la renta.</p>` : ''; })()}
     </body></html>`);
   w.document.close();setTimeout(()=>w.print(),400);
 }
@@ -2230,7 +2318,7 @@ function reporteDatos(){
   const contratos = C.filter(c => c.ub === ub).sort((a,b)=> String(a.u).localeCompare(String(b.u)));
   const idsEd = new Set(contratos.map(c=>c.id));
   // 1) Pagos recibidos del mes (agrupados por la etiqueta `periodo` del pago)
-  const pagosMes = PAGOS.filter(p => idsEd.has(Number(p.cid)) && String(p.periodo).slice(0,7) === mes)
+  const pagosMes = PAGOS.filter(p => idsEd.has(Number(p.cid)) && esPagoRenta(p) && String(p.periodo).slice(0,7) === mes)
     .map(p => { const c = C.find(x=>x.id===Number(p.cid)); return {u:c?c.u:'?', inq:c?c.inq:'?', fecha:p.fecha, monto:Number(p.monto)||0}; })
     .sort((a,b)=> String(a.fecha).localeCompare(String(b.fecha)));
   const totalPagos = pagosMes.reduce((s,p)=>s+p.monto, 0);
@@ -2375,7 +2463,7 @@ function cortePrimerMes(ub){
   const ids = new Set(C.filter(c => c.ub === ub).map(c => c.id));
   let min = '';
   const tomar = s => { s = String(s||'').slice(0,7); if(/^\d{4}-\d{2}$/.test(s) && (!min || s < min)) min = s; };
-  PAGOS.forEach(p => { if(ids.has(Number(p.cid))) tomar(toDateInput(p.fecha)); });
+  PAGOS.forEach(p => { if(ids.has(Number(p.cid)) && esPagoRenta(p)) tomar(toDateInput(p.fecha)); });
   GASTOS.forEach(g => { if(g.ubicacion === ub) tomar(esCierreCorte(g) ? cierreInfo(g).periodo : toDateInput(g.fecha)); });
   cache.primero = min;
   return min;
@@ -2386,7 +2474,7 @@ function corteMovimientosMes(ub, mes){
   const ids = new Set(C.filter(c => c.ub === ub).map(c => c.id));
   let cobrado = 0, comision = 0;
   PAGOS.forEach(p => {
-    if(!ids.has(Number(p.cid)) || String(toDateInput(p.fecha)).slice(0,7) !== mes) return;
+    if(!ids.has(Number(p.cid)) || !esPagoRenta(p) || String(toDateInput(p.fecha)).slice(0,7) !== mes) return;
     const c = C.find(x => x.id === Number(p.cid));
     const monto = Number(p.monto) || 0, pct = Number(c && c.pctComision) || 0;
     cobrado += monto;
@@ -2530,6 +2618,8 @@ const CORTE_CSS = `
 .mz-inf .mz-pagos col.c-fec{width:14%;}
 .mz-inf .mz-pagos col.c-per{width:28%;}
 .mz-inf .mz-pagos col.c-mon{width:16%;}
+.mz-inf .tag.dep{color:#1f4e9c;border:1px solid #1f4e9c;background:#fff;margin-left:0;}
+.mz-inf .tag.dev{color:#9c5a1f;border:1px solid #9c5a1f;background:#fff;margin-left:0;}
 .mz-inf .tag.cerrado{color:#1E7B4F;border:1px solid #1E7B4F;background:#fff;font-family:'Rajdhani','Century Gothic',Calibri,sans-serif;letter-spacing:1px;text-transform:none;}
 .mz-inf .mz-liq{width:100%;max-width:420px;margin-left:auto;border-collapse:collapse;}
 .mz-inf .mz-liq tr.total td{font-weight:700;border-top:2px solid #7BADA8;border-bottom:none;}
@@ -2590,8 +2680,9 @@ function corteDatos(){
   // Todos los departamentos del inmueble, en orden natural
   const contratos = C.filter(c => c.ub === ub).sort(cmpDepto);
   const ids = new Set(contratos.map(c=>c.id));
-  // INGRESOS: pagos cobrados en el mes (fecha de pago). Comisión = pctComision del contrato.
-  const ingresos = PAGOS.filter(p => ids.has(Number(p.cid)) && String(toDateInput(p.fecha)).slice(0,7) === mes)
+  // INGRESOS: pagos de RENTA cobrados en el mes (fecha de pago). Comisión = pctComision del contrato.
+  // Depósitos y devoluciones quedan fuera del cobrado, del neto y de la comisión.
+  const ingresos = PAGOS.filter(p => ids.has(Number(p.cid)) && esPagoRenta(p) && String(toDateInput(p.fecha)).slice(0,7) === mes)
     .map(p => {
       const c = C.find(x=>x.id===Number(p.cid));
       const pct = Number(c.pctComision) || 0;
@@ -2635,10 +2726,19 @@ function corteDatos(){
   });
   const totalAdeudo = saldos.reduce((s,x)=>s+(x.saldo>0?x.saldo:0), 0);
   const totalFavor  = saldos.reduce((s,x)=>s+(x.saldo<0?-x.saldo:0), 0);
+  // DEPÓSITO EN GARANTÍA (informativo): movimientos del mes y saldo en resguardo al cierre del mes.
+  const depMov = PAGOS.filter(p => ids.has(Number(p.cid)) && !esPagoRenta(p) && String(toDateInput(p.fecha)).slice(0,7) === mes)
+    .map(p => { const c = C.find(x=>x.id===Number(p.cid));
+      return {u:c.u, inq:c.inq, estatus:estatusDe(c), fecha:toDateInput(p.fecha), concepto:conceptoPago(p), monto:Number(p.monto)||0, nota:p.nota||''}; })
+    .sort((a,b)=> cmpDepto(a,b) || a.fecha.localeCompare(b.fecha));
+  const depRecibidos = r2(depMov.filter(m=>m.concepto==='deposito').reduce((s,m)=>s+m.monto, 0));
+  const depDevueltos = r2(depMov.filter(m=>m.concepto==='devolucion').reduce((s,m)=>s+m.monto, 0));
+  const depResguardo = r2(contratos.reduce((s,c)=>s+depositoResguardo(c.id, finMes).saldo, 0));
   const props = [...new Set(contratos.map(c=>c.prop).filter(Boolean))];
   return {ub, mes, contratos, ingresos, filasPagos, sinCobro, totalIngresos, totalComision, pcts,
           gastos, totalGastos, saldoInicial, saldoFinal, saldoFinalVivo, netoEntregar, cerrado: res.cerrado, cierre: res.cierre,
-          saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—'};
+          saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—',
+          depMov, depRecibidos, depDevueltos, depResguardo};
 }
 
 function corteBodyHTML(d){
@@ -2694,6 +2794,27 @@ function corteBodyHTML(d){
     </tr>`;
   }).join('') || `<tr><td colspan="4" class="vacio">Sin contratos en este inmueble</td></tr>`;
 
+  // ── Depósito en garantía (informativo; solo si hay movimientos o saldo en resguardo) ──
+  const depositoHTML = (d.depMov.length || Math.abs(d.depResguardo) > 0.004) ? `
+    <h2>Depósito en garantía (en resguardo — no forma parte del neto)</h2>
+    <table class="mz-dep">
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha</th><th>Movimiento</th><th class="num">Monto</th></tr></thead>
+      <tbody>${d.depMov.length ? d.depMov.map(m => `
+        <tr>
+          <td><b>${esc(m.u)}</b></td>
+          <td>${inqCell(m)}</td>
+          <td>${fF(m.fecha)}</td>
+          <td><span class="tag ${m.concepto==='deposito'?'dep':'dev'}">${m.concepto==='deposito'?'DEPÓSITO RECIBIDO':'DEVOLUCIÓN'}</span>${m.concepto==='devolucion'&&m.nota?`<span class="sub">${esc(m.nota)}</span>`:''}</td>
+          <td class="num">${m.concepto==='devolucion'?'−':''}${fM2(m.monto)}</td>
+        </tr>`).join('') : `<tr><td colspan="5" class="vacio">Sin movimientos de depósito en este periodo</td></tr>`}</tbody>
+    </table>
+    <table class="mz-liq" style="margin-top:8px;">
+      <tr><td>Depósitos recibidos en el mes</td><td class="num">${fM2(d.depRecibidos)}</td></tr>
+      <tr><td>Devoluciones en el mes</td><td class="num">${d.depDevueltos>0.004?'−':''}${fM2(d.depDevueltos)}</td></tr>
+      <tr class="total"><td>Saldo en resguardo al cierre del mes</td><td class="num${d.depResguardo < -0.004 ? ' rojo' : ''}">${fS(d.depResguardo)}</td></tr>
+    </table>
+    <div class="mz-liq-nota">El depósito en garantía se conserva en resguardo y se devuelve al término del contrato; no se suma al cobrado, no causa comisión y no forma parte del neto a entregar.</div>` : '';
+
   const mtto = MTTO_INCLUIDO[d.ub];
   const aviso = mtto && d.mes < mtto.cobrarDesde
     ? `<div class="mz-aviso">⚠️ No incluye la cuota de mantenimiento de ${fM2(mtto.monto)}/depto (se cobra a partir de ${mtto.cobrarDesde}). No se aplica pena moratoria en este informe.</div>` : '';
@@ -2735,6 +2856,7 @@ function corteBodyHTML(d){
     </table>
     ${d.cerrado && Math.abs(d.saldoFinal - d.saldoFinalVivo) > 0.004 ? `<div class="mz-liq-nota mz-liq-aviso">Saldo final congelado al cierre del mes. Con los movimientos actuales el recálculo en vivo daría ${fS(d.saldoFinalVivo)}.</div>` : ''}
     <div class="mz-liq-nota">El saldo inicial corresponde al saldo final del corte anterior. Un mes marcado como cerrado se considera entregado y el siguiente arranca en cero; los saldos negativos y los positivos de meses no cerrados se arrastran automáticamente.</div>
+    ${depositoHTML}
 
     <div class="mz-firma">
       <div class="linea"></div>
