@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34z</title>
+<title>Moctezuma — Control de Arrendamientos v35a</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34z · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v35a · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -994,6 +994,11 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
           </select>
           <div id="pConceptoHint" style="font-size:11px;color:#888;margin-top:4px;"></div>
         </div>
+        <div id="pCustodiaBox" style="display:none;margin-bottom:14px;background:#e6eefc;padding:10px 14px;border-radius:8px;">
+          <label style="font-size:11px;color:#1f4e9c;display:block;margin-bottom:6px;font-weight:bold;">¿Quién tiene el depósito?</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;margin-bottom:4px;"><input type="radio" name="pCustodia" value="admin" checked> Lo conservo yo (resguardo de la administración)</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#333;cursor:pointer;"><input type="radio" name="pCustodia" value="prop"> Se entrega al propietario</label>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
           <div>
             <label id="pPeriodoLbl" style="font-size:11px;color:#666;display:block;margin-bottom:4px;font-weight:bold;">Periodo que cubre *</label>
@@ -1084,7 +1089,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34z — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v35a — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1219,7 +1224,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34z · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v35a · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1841,7 +1846,14 @@ function calcularEstadoCuenta(c, hastaDate, pagosHastaDate){
   const pagosTodos = PAGOS.filter(p => Number(p.cid) === c.id && esPagoRenta(p))
     .map(p => ({...p, _f: parseFecha(p.fecha), monto: Number(p.monto)||0}))
     .sort((a,b) => a._f - b._f);
-  const pagosCorte = corte ? pagosTodos.filter(p => p._f >= corte) : pagosTodos;
+  // v35a: excepción = renta ANTICIPADA de la cuenta nueva: pago hecho ya con este contrato
+  // (fecha >= inicio del contrato) y etiquetado a un periodo >= mes del corte. Ej.: contrato
+  // que inicia el 23-sep, corte 01-oct, renta de octubre pagada el 25-sep → sí se aplica.
+  const iniC = c.ini ? parseFecha(c.ini) : null;
+  const mesCorte = corte ? `${corte.getFullYear()}-${String(corte.getMonth()+1).padStart(2,'0')}` : '';
+  const esAnticipoCuentaNueva = p => !!iniC && p._f >= iniC
+    && String(toDateInput(p.periodo) || p.periodo || '').slice(0,7) >= mesCorte;
+  const pagosCorte = corte ? pagosTodos.filter(p => p._f >= corte || esAnticipoCuentaNueva(p)) : pagosTodos;
   const pagosExcluidos = pagosTodos.length - pagosCorte.length;
   const montoExcluido = pagosTodos.reduce((s,p)=>s+p.monto,0) - pagosCorte.reduce((s,p)=>s+p.monto,0);
   const pagos = pagosHastaDate ? pagosCorte.filter(p => p._f <= pagosHastaDate) : pagosCorte;
@@ -2097,6 +2109,7 @@ function pagoConceptoCambio(){
   document.getElementById('pNotaLbl').textContent = k === 'devolucion' ? 'Motivo / deducciones (opcional)' : 'Nota (opcional)';
   document.getElementById('pNota').placeholder = k === 'devolucion' ? 'Ej: se descontó pintura $1,500 y limpieza $800...' : 'Observaciones...';
   document.getElementById('pSubmit').textContent = esRenta ? '💾 Registrar Pago' : {deposito:'💾 Registrar Depósito', devolucion:'💾 Registrar Devolución', entrega:'💾 Registrar Entrega'}[k];
+  document.getElementById('pCustodiaBox').style.display = k === 'deposito' ? 'block' : 'none';
   const hint = document.getElementById('pConceptoHint'), mHint = document.getElementById('pMontoHint'), monto = document.getElementById('pMonto');
   if(!c){ hint.textContent = ''; return; }
   const dg = depositoResguardo(c.id);
@@ -2121,6 +2134,13 @@ function pagoConceptoCambio(){
     monto.value = dg.saldo > 0 ? dg.saldo : '';
     mHint.textContent = `Depósito vigente: ${fM(dg.saldo)} (administración ${fM(dg.admin)} · propietario ${fM(dg.prop)})`;
   }
+}
+// Abre el registro con el concepto "Depósito entregado al propietario" ya elegido.
+function abrirEntregaDeposito(id){
+  cerrarEstadoCuenta();
+  abrirRegistroPago(id);
+  document.getElementById('pConcepto').value = 'entrega';
+  pagoConceptoCambio();
 }
 function cerrarRegistroPago(){
   document.getElementById('modalPago').style.display='none';
@@ -2156,15 +2176,22 @@ function guardarPago(e){
     if(pago.monto > dg.admin + 0.004 && !confirm(`La entrega (${fM(pago.monto)}) es mayor a lo que está en resguardo de la administración (${fM(dg.admin)}). ¿Registrarla de todos modos?`)) return;
   }
   if(!confirmarSiMesCerrado(c.ub, [pago.fecha, pago.periodo])) return;
-  PAGOS.push(pago);
+  // Depósito que se entrega al propietario en el acto: se registra el depósito y su entrega (misma fecha).
+  const custodia = (document.querySelector('input[name="pCustodia"]:checked') || {}).value || 'admin';
+  const regs = [pago];
+  if(concepto === 'deposito' && custodia === 'prop'){
+    regs.push({...pago, concepto:'entrega', periodo:'', nota: pago.nota || 'Entregado al propietario al recibirlo',
+               timestamp: new Date(Date.parse(pago.timestamp) + 1).toISOString()});
+  }
+  regs.forEach(r => PAGOS.push(r));
   corteInvalidarCache(c.ub);
   cerrarRegistroPago();
-  registrarAuditoria('PAGO_REGISTRADO', cid, `${c.inq} — ${concepto!=='renta'?'['+CONCEPTOS_PAGO[concepto]+'] ':''}${pago.periodo} — ${fM(pago.monto)}`);
+  registrarAuditoria('PAGO_REGISTRADO', cid, `${c.inq} — ${concepto!=='renta'?'['+CONCEPTOS_PAGO[concepto]+'] ':''}${pago.periodo} — ${fM(pago.monto)}${regs.length>1?' · entregado al propietario':''}`);
   renderPagos();
-  // Sincronizar con Sheets
+  // Sincronizar con Sheets (en orden: primero el depósito, luego su entrega)
   if(SHEETS_URL && sheetsConectado){
-    jsonpFetch(SHEETS_URL + '?action=savePago&data=' + encodeURIComponent(JSON.stringify(pago)))
-      .then(()=> toast(`✅ ${concepto==='renta'?'Pago':CONCEPTOS_PAGO[concepto]} de ${c.inq} guardado en Sheets`,'success'))
+    regs.reduce((pr, r) => pr.then(() => jsonpFetch(SHEETS_URL + '?action=savePago&data=' + encodeURIComponent(JSON.stringify(r)))), Promise.resolve())
+      .then(()=> toast(`✅ ${concepto==='renta'?'Pago':CONCEPTOS_PAGO[concepto]} de ${c.inq} guardado en Sheets${regs.length>1?' (entregado al propietario)':''}`,'success'))
       .catch(err => toast('⚠️ Pago guardado localmente. Error Sheets: '+err.message,'warn'));
   } else {
     toast(`✅ ${concepto==='renta'?'Pago registrado':CONCEPTOS_PAGO[concepto]+' registrado'} — ${fM(pago.monto)}`,'success');
@@ -2236,7 +2263,7 @@ function abrirEstadoCuenta(id){
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#e6eefc;border-radius:8px;padding:10px 14px;margin:-6px 0 18px;font-size:12px;color:#1f4e9c;">
-      <span>🔐 <b>Depósito en garantía: ${fM(dg.saldo)}</b> · ${custodiaTexto(dg)}</span>
+      <span>🔐 <b>Depósito en garantía: ${fM(dg.saldo)}</b> · ${custodiaTexto(dg)}${dg.admin>0.004?` <button onclick="abrirEntregaDeposito(${c.id})" style="margin-left:6px;background:#6a3d91;color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:11px;cursor:pointer;">➡️ Entregar al propietario</button>`:''}</span>
       <span style="font-size:11px;">Recibido ${fM(dg.recibido)} · Entregado al propietario ${fM(dg.entregado)} · Devuelto ${fM(dg.devuelto)} · no abona a la renta</span>
     </div>
     <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Movimientos</div>
@@ -2732,7 +2759,14 @@ function corteDatos(){
     const pagosC = ingresos.filter(i => i.cid === c.id);
     const est = estatusDe(c);
     if(pagosC.length) pagosC.forEach(p => filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:p.fecha, periodo:p.periodo, rentaPagada:p.rentaPagada, monto:p.monto, pago:true}));
-    else filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', rentaPagada:'', monto:0, pago:false});
+    else {
+      // v35a: sin cobro en el mes pero con la renta de este mes pagada por anticipado en un mes anterior.
+      const ant = PAGOS.filter(p => Number(p.cid) === c.id && esPagoRenta(p)
+          && String(toDateInput(p.periodo) || p.periodo || '').slice(0,7) === mes
+          && String(toDateInput(p.fecha)).slice(0,7) < mes)
+        .map(p => toDateInput(p.fecha)).sort()[0] || '';
+      filasPagos.push({u:c.u, inq:c.inq, estatus:est, fecha:'', periodo:'', rentaPagada:'', monto:0, pago:false, anticipo:ant});
+    }
   });
   const sinCobro = contratos.filter(c => !ingresos.some(i => i.cid === c.id))
     .map(c => ({u:c.u, inq:c.inq, estatus:estatusDe(c)}));
@@ -2799,11 +2833,11 @@ function corteBodyHTML(d){
 
   // ── Pagos recibidos ──
   const pagosRows = d.filasPagos.map(f => `
-    <tr class="${f.pago?'ok':'bad'}">
+    <tr class="${f.pago||f.anticipo?'ok':'bad'}">
       <td><b>${esc(f.u)}</b></td>
       <td>${inqCell(f)}</td>
       <td>${f.pago ? fF(f.fecha) : '—'}</td>
-      <td class="per">${f.pago ? esc(f.rentaPagada) : ''}</td>
+      <td class="per">${f.pago ? esc(f.rentaPagada) : f.anticipo ? `${perLargo(d.mes)}<span class="sub">Pagada por anticipado el ${fF(f.anticipo)} (reportada en ese mes)</span>` : ''}</td>
       <td class="num">${fM2(f.monto)}</td>
     </tr>`).join('') || `<tr><td colspan="5" class="vacio">Sin contratos en este inmueble</td></tr>`;
 

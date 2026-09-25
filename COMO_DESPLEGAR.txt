@@ -1,7 +1,13 @@
 CÓMO DESPLEGAR UNA NUEVA VERSIÓN DE index.html EN APPS SCRIPT
 ==============================================================
 Proyecto: Moctezuma — Control de Arrendamientos
-Última versión: v34z (25-sep-2026) — app v34z + script v34z
+Última versión: v35a (25-sep-2026) — app v35a + script v34z
+
+>>> v35a: solo cambia index.html, PERO requiere el script v34z publicado antes
+    (si ping aún dice v34y, publicar primero apps-script-completo.gs). <<<
+  Verificar: login "v35a · Sistema listo"; corte Dr Velasco 106 septiembre
+  muestra a Jared (depto 2) 25-sep "Octubre 2026" $8,000 y el apartado
+  "Depósito en garantía"; en octubre su fila sale en verde "Pagada por anticipado".
 
 >>> v34z: TAMBIÉN CAMBIA LOS DOS ARCHIVOS (mismo orden que v34y) <<<
   Script primero (acepta el concepto nuevo 'entrega' = depósito entregado al
