@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Moctezuma — Control de Arrendamientos v34y</title>
+<title>Moctezuma — Control de Arrendamientos v34z</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--dark:#0F2027;--teal:#7BADA8;--teal2:#3D7A75;--white:#FFFFFF;--gray:#F4F6F7;--text:#1A1A2E;--danger:#E74C3C;--warn:#F39C12;--success:#27AE60;--info:#2980B9;}
@@ -209,7 +209,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
     <input class="login-input" id="loginEmail" type="email" placeholder="Ingresa tu correo electrónico" autocomplete="email" autofocus onkeydown="if(event.key==='Enter')iniciarSesion()">
     <button class="login-btn" id="loginBtn" onclick="iniciarSesion()">🔐 Ingresar</button>
     <div class="login-error" id="loginError"></div>
-    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34y · Cargando JavaScript...</div>
+    <div style="margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;" id="loginVersion">v34z · Cargando JavaScript...</div>
   </div>
 </div>
 
@@ -990,6 +990,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
             <option value="renta">Renta</option>
             <option value="deposito">Depósito recibido</option>
             <option value="devolucion">Devolución de depósito</option>
+            <option value="entrega">Depósito entregado al propietario</option>
           </select>
           <div id="pConceptoHint" style="font-size:11px;color:#888;margin-top:4px;"></div>
         </div>
@@ -1083,7 +1084,7 @@ tbody td{padding:10px 13px;color:rgba(255,255,255,.85);vertical-align:middle;}
 </div>
 
 <div class="toast-container" id="toastC"></div>
-<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34y — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
+<footer class="footer">Moctezuma Administradora Inteligente ✦✦ v34z — Web App | <span>abogado.flores.moctezuma@gmail.com</span> | <span>5566709577</span> | <span>www.administradoramoctezuma.com</span></footer>
 <script>
 // ===== DIAGNÓSTICO DE CARGA =====
 window.addEventListener('error', function(e){
@@ -1218,7 +1219,7 @@ function registrarAuditoria(accion, contratoId, detalles){
 (function checkSession(){
   // Actualizar indicador: el JavaScript se cargó correctamente
   const v = document.getElementById('loginVersion');
-  if(v) v.innerHTML = 'v34y · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
+  if(v) v.innerHTML = 'v34z · ✅ Sistema listo' + (WEB_APP_MODE ? ' · Web App' : ' · Local');
 
   try {
     const saved = sessionStorage.getItem('moctezuma_user');
@@ -1549,30 +1550,45 @@ function closeModal(){document.getElementById('modalOv').classList.remove('open'
 
 // ===== PAGOS / CONTABILIDAD DE RENTAS =====
 let PAGOS = [];          // {cid, periodo, fecha, monto, comprobante, referencia, nota, usuario, timestamp, concepto}
-// Concepto del movimiento en PAGOS (v34y): 'renta' | 'deposito' | 'devolucion'.
-// Vacío o desconocido = renta (filas previas a v34y). Depósitos y devoluciones NO
+// Concepto del movimiento en PAGOS (v34y): 'renta' | 'deposito' | 'devolucion' | 'entrega' (v34z).
+// Vacío o desconocido = renta (filas previas a v34y). Los movimientos de depósito NO
 // son renta: no reducen el adeudo, no entran al FIFO, ni al cobrado/comisión del corte.
-const CONCEPTOS_PAGO = {renta:'Renta', deposito:'Depósito recibido', devolucion:'Devolución de depósito'};
+// 'entrega' = el depósito pasa del resguardo de la administración al propietario.
+const CONCEPTOS_PAGO = {renta:'Renta', deposito:'Depósito recibido', devolucion:'Devolución de depósito', entrega:'Depósito entregado al propietario'};
 function conceptoPago(p){
   const k = String((p && p.concepto) || '').trim().toLowerCase();
-  return (k === 'deposito' || k === 'devolucion') ? k : 'renta';
+  return CONCEPTOS_PAGO[k] && k !== 'renta' ? k : 'renta';
 }
 function esPagoRenta(p){ return conceptoPago(p) === 'renta'; }
-// Depósito en resguardo de un contrato = Σ depósitos − Σ devoluciones (hasta una fecha, opcional).
+// Depósito en garantía de un contrato (hasta una fecha, opcional):
+//   saldo = vigente = Σ depósitos − Σ devoluciones
+//   admin = en resguardo de la administración = recibido − entregado − devuelto
+//   prop  = en poder del propietario = entregado (si la devolución excede lo que
+//           tenía la administración, el faltante sale de lo entregado al propietario).
 function depositoResguardo(cid, hastaDate){
-  let recibido = 0, devuelto = 0;
+  let recibido = 0, devuelto = 0, entregado = 0;
   PAGOS.forEach(p => {
     if(Number(p.cid) !== Number(cid) || esPagoRenta(p)) return;
     if(hastaDate && parseFecha(p.fecha) > hastaDate) return;
-    const m = Number(p.monto) || 0;
-    if(conceptoPago(p) === 'deposito') recibido += m; else devuelto += m;
+    const m = Number(p.monto) || 0, k = conceptoPago(p);
+    if(k === 'deposito') recibido += m; else if(k === 'entrega') entregado += m; else devuelto += m;
   });
-  return {recibido: r2(recibido), devuelto: r2(devuelto), saldo: r2(recibido - devuelto)};
+  let admin = recibido - entregado - devuelto, prop = entregado;
+  if(admin < 0){ prop = Math.max(0, prop + admin); admin = 0; }
+  return {recibido: r2(recibido), devuelto: r2(devuelto), entregado: r2(entregado),
+          saldo: r2(recibido - devuelto), admin: r2(admin), prop: r2(prop)};
+}
+// Texto de custodia: quién tiene hoy el depósito.
+function custodiaTexto(dg){
+  if(dg.admin > 0.004 && dg.prop > 0.004) return `Administración ${fM(dg.admin)} · Propietario ${fM(dg.prop)}`;
+  if(dg.prop > 0.004) return 'Entregado al propietario';
+  if(dg.admin > 0.004) return 'En resguardo de la administración';
+  return '—';
 }
 // Etiqueta visual del concepto (estado de cuenta y listas de pagos).
 function badgeConcepto(p){
   const k = conceptoPago(p);
-  const st = {renta:'background:#e3f1ec;color:#1E7B4F;', deposito:'background:#e6eefc;color:#1f4e9c;', devolucion:'background:#fdeede;color:#9c5a1f;'}[k];
+  const st = {renta:'background:#e3f1ec;color:#1E7B4F;', deposito:'background:#e6eefc;color:#1f4e9c;', devolucion:'background:#fdeede;color:#9c5a1f;', entrega:'background:#efe6f7;color:#6a3d91;'}[k];
   return `<span style="${st}font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;white-space:nowrap;">${CONCEPTOS_PAGO[k]}</span>`;
 }
 // Gasto: {id, fecha:'YYYY-MM-DD', ubicacion, contratoId ('' = gasto general del
@@ -1969,7 +1985,7 @@ function renderPagos(){
       </div>
       <div class="pago-detail" style="margin-bottom:8px;">${esVacante?'Sin cargos nuevos; el adeudo pendiente se conserva':'Vence día '+c.dp+(c.gr?` (+${c.gr}d gracia)`:'')+(ec.primerAtraso&&ec.primerAtraso.tipo!=='inicial'?` · atraso desde ${ec.primerAtraso.periodo}`:'')}</div>
       ${(()=>{ const dg = depositoResguardo(c.id); return Math.abs(dg.saldo) > 0.004
-        ? `<div class="pago-detail" style="margin-bottom:8px;">🔐 Depósito en resguardo: <b>${fM(dg.saldo)}</b></div>` : ''; })()}
+        ? `<div class="pago-detail" style="margin-bottom:8px;">🔐 Depósito en garantía: <b>${fM(dg.saldo)}</b> · ${custodiaTexto(dg)}</div>` : ''; })()}
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid rgba(123,173,168,.15);margin-bottom:8px;">
         <span style="font-size:11px;color:rgba(255,255,255,.5);">Adeudo acumulado:</span>
         <span style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:${ec.saldoTotal>0?'var(--danger)':'var(--success)'};">${fM(ec.saldoTotal)}</span>
@@ -2080,7 +2096,7 @@ function pagoConceptoCambio(){
   document.getElementById('pPeriodoLbl').textContent = esRenta ? 'Periodo que cubre *' : 'Periodo (opcional)';
   document.getElementById('pNotaLbl').textContent = k === 'devolucion' ? 'Motivo / deducciones (opcional)' : 'Nota (opcional)';
   document.getElementById('pNota').placeholder = k === 'devolucion' ? 'Ej: se descontó pintura $1,500 y limpieza $800...' : 'Observaciones...';
-  document.getElementById('pSubmit').textContent = esRenta ? '💾 Registrar Pago' : k === 'deposito' ? '💾 Registrar Depósito' : '💾 Registrar Devolución';
+  document.getElementById('pSubmit').textContent = esRenta ? '💾 Registrar Pago' : {deposito:'💾 Registrar Depósito', devolucion:'💾 Registrar Devolución', entrega:'💾 Registrar Entrega'}[k];
   const hint = document.getElementById('pConceptoHint'), mHint = document.getElementById('pMontoHint'), monto = document.getElementById('pMonto');
   if(!c){ hint.textContent = ''; return; }
   const dg = depositoResguardo(c.id);
@@ -2094,11 +2110,16 @@ function pagoConceptoCambio(){
     per.value = '';
     monto.value = Number(c.dep) || '';
     mHint.textContent = `Depósito pactado en contrato: ${fM(Number(c.dep)||0)} · en resguardo: ${fM(dg.saldo)}`;
+  } else if(k === 'entrega'){
+    hint.textContent = 'El depósito pasa del resguardo de la administración al propietario; no es renta ni entra al neto.';
+    per.value = '';
+    monto.value = dg.admin > 0 ? dg.admin : '';
+    mHint.textContent = `En resguardo de la administración: ${fM(dg.admin)} · ya entregado al propietario: ${fM(dg.prop)}`;
   } else {
-    hint.textContent = 'Sale del depósito en resguardo; no afecta la renta ni el corte del dueño.';
+    hint.textContent = 'Se devuelve al inquilino; no afecta la renta ni el corte del dueño.';
     per.value = '';
     monto.value = dg.saldo > 0 ? dg.saldo : '';
-    mHint.textContent = `Depósito en resguardo: ${fM(dg.saldo)}`;
+    mHint.textContent = `Depósito vigente: ${fM(dg.saldo)} (administración ${fM(dg.admin)} · propietario ${fM(dg.prop)})`;
   }
 }
 function cerrarRegistroPago(){
@@ -2122,9 +2143,17 @@ function guardarPago(e){
     usuario: currentUser,
     timestamp: new Date().toISOString()
   };
+  // v34z: aviso de fecha fuera de rango (p.ej. año mal capturado: 2027 en vez de 2026)
+  const fPago = parseFecha(pago.fecha), hoyD0 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const difDias = Math.round((fPago - hoyD0) / 86400000);
+  if(Math.abs(difDias) > 31 && !confirm(`⚠️ La fecha de pago (${fF(pago.fecha)}) está a ${Math.abs(difDias)} días ${difDias>0?'en el FUTURO':'en el pasado'}.\n\n¿Es correcta? (Revisa sobre todo el año.)`)) return;
   if(concepto === 'devolucion'){
     const dg = depositoResguardo(cid);
-    if(pago.monto > dg.saldo + 0.004 && !confirm(`La devolución (${fM(pago.monto)}) es mayor al depósito en resguardo (${fM(dg.saldo)}). ¿Registrarla de todos modos?`)) return;
+    if(pago.monto > dg.saldo + 0.004 && !confirm(`La devolución (${fM(pago.monto)}) es mayor al depósito vigente (${fM(dg.saldo)}). ¿Registrarla de todos modos?`)) return;
+  }
+  if(concepto === 'entrega'){
+    const dg = depositoResguardo(cid);
+    if(pago.monto > dg.admin + 0.004 && !confirm(`La entrega (${fM(pago.monto)}) es mayor a lo que está en resguardo de la administración (${fM(dg.admin)}). ¿Registrarla de todos modos?`)) return;
   }
   if(!confirmarSiMesCerrado(c.ub, [pago.fecha, pago.periodo])) return;
   PAGOS.push(pago);
@@ -2207,8 +2236,8 @@ function abrirEstadoCuenta(id){
       </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#e6eefc;border-radius:8px;padding:10px 14px;margin:-6px 0 18px;font-size:12px;color:#1f4e9c;">
-      <span>🔐 <b>Depósito en resguardo: ${fM(dg.saldo)}</b></span>
-      <span style="font-size:11px;">Recibido ${fM(dg.recibido)} · Devuelto ${fM(dg.devuelto)} · no abona a la renta</span>
+      <span>🔐 <b>Depósito en garantía: ${fM(dg.saldo)}</b> · ${custodiaTexto(dg)}</span>
+      <span style="font-size:11px;">Recibido ${fM(dg.recibido)} · Entregado al propietario ${fM(dg.entregado)} · Devuelto ${fM(dg.devuelto)} · no abona a la renta</span>
     </div>
     <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">Movimientos</div>
     <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-bottom:18px;max-height:340px;overflow-y:auto;">
@@ -2285,7 +2314,7 @@ function imprimirEstadoCuenta(id){
     <table><thead><tr><th>Fecha</th><th>Concepto</th><th style="text-align:right;">Cargo</th><th style="text-align:right;">Abono</th><th style="text-align:right;">Saldo</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="tot"><strong>Total cargos:</strong> ${fM(ec.totalCargo)} · <strong>Total pagado:</strong> ${fM(ec.totalPagado)} · <strong>Saldo pendiente:</strong> ${fM(ec.saldoTotal)}</div>
     ${ec.pagosExcluidos>0?`<p style="font-size:10px;color:#666;">Nota: ${ec.pagosExcluidos} pago(s) por ${fM(ec.montoExcluido)} anteriores al corte contable no se aplican a esta cuenta.</p>`:''}
-    ${(()=>{ const dg = depositoResguardo(c.id); return (dg.recibido||dg.devuelto) ? `<p><strong>Depósito en resguardo:</strong> ${fM(dg.saldo)} (recibido ${fM(dg.recibido)} · devuelto ${fM(dg.devuelto)}). No forma parte de los abonos a la renta.</p>` : ''; })()}
+    ${(()=>{ const dg = depositoResguardo(c.id); return (dg.recibido||dg.devuelto) ? `<p><strong>Depósito en garantía:</strong> ${fM(dg.saldo)} — ${custodiaTexto(dg)} (recibido ${fM(dg.recibido)} · entregado al propietario ${fM(dg.entregado)} · devuelto ${fM(dg.devuelto)}). No forma parte de los abonos a la renta.</p>` : ''; })()}
     </body></html>`);
   w.document.close();setTimeout(()=>w.print(),400);
 }
@@ -2620,6 +2649,7 @@ const CORTE_CSS = `
 .mz-inf .mz-pagos col.c-mon{width:16%;}
 .mz-inf .tag.dep{color:#1f4e9c;border:1px solid #1f4e9c;background:#fff;margin-left:0;}
 .mz-inf .tag.dev{color:#9c5a1f;border:1px solid #9c5a1f;background:#fff;margin-left:0;}
+.mz-inf .tag.ent{color:#6a3d91;border:1px solid #6a3d91;background:#fff;margin-left:0;}
 .mz-inf .tag.cerrado{color:#1E7B4F;border:1px solid #1E7B4F;background:#fff;font-family:'Rajdhani','Century Gothic',Calibri,sans-serif;letter-spacing:1px;text-transform:none;}
 .mz-inf .mz-liq{width:100%;max-width:420px;margin-left:auto;border-collapse:collapse;}
 .mz-inf .mz-liq tr.total td{font-weight:700;border-top:2px solid #7BADA8;border-bottom:none;}
@@ -2733,12 +2763,20 @@ function corteDatos(){
     .sort((a,b)=> cmpDepto(a,b) || a.fecha.localeCompare(b.fecha));
   const depRecibidos = r2(depMov.filter(m=>m.concepto==='deposito').reduce((s,m)=>s+m.monto, 0));
   const depDevueltos = r2(depMov.filter(m=>m.concepto==='devolucion').reduce((s,m)=>s+m.monto, 0));
-  const depResguardo = r2(contratos.reduce((s,c)=>s+depositoResguardo(c.id, finMes).saldo, 0));
+  const depEntregados = r2(depMov.filter(m=>m.concepto==='entrega').reduce((s,m)=>s+m.monto, 0));
+  // Depósitos vigentes al cierre del mes, por departamento, con quién los tiene.
+  const depDeptos = contratos.map(c => ({u:c.u, inq:c.inq, estatus:estatusDe(c), ...depositoResguardo(c.id, finMes),
+      fechaRec: (PAGOS.filter(p => Number(p.cid)===c.id && conceptoPago(p)==='deposito' && parseFecha(p.fecha) <= finMes)
+                  .map(p => toDateInput(p.fecha)).sort()[0]) || ''}))
+    .filter(x => x.recibido > 0.004 || x.devuelto > 0.004 || x.entregado > 0.004);
+  const depResguardo = r2(depDeptos.reduce((s,x)=>s+x.saldo, 0));
+  const depAdmin = r2(depDeptos.reduce((s,x)=>s+x.admin, 0));
+  const depProp  = r2(depDeptos.reduce((s,x)=>s+x.prop, 0));
   const props = [...new Set(contratos.map(c=>c.prop).filter(Boolean))];
   return {ub, mes, contratos, ingresos, filasPagos, sinCobro, totalIngresos, totalComision, pcts,
           gastos, totalGastos, saldoInicial, saldoFinal, saldoFinalVivo, netoEntregar, cerrado: res.cerrado, cierre: res.cierre,
           saldos, totalAdeudo, totalFavor, propietario: props.join(', ') || '—',
-          depMov, depRecibidos, depDevueltos, depResguardo};
+          depMov, depRecibidos, depDevueltos, depEntregados, depDeptos, depResguardo, depAdmin, depProp};
 }
 
 function corteBodyHTML(d){
@@ -2794,26 +2832,46 @@ function corteBodyHTML(d){
     </tr>`;
   }).join('') || `<tr><td colspan="4" class="vacio">Sin contratos en este inmueble</td></tr>`;
 
-  // ── Depósito en garantía (informativo; solo si hay movimientos o saldo en resguardo) ──
-  const depositoHTML = (d.depMov.length || Math.abs(d.depResguardo) > 0.004) ? `
-    <h2>Depósito en garantía (en resguardo — no forma parte del neto)</h2>
+  // ── Depósito en garantía (informativo). Aparece todos los meses mientras exista algún
+  // depósito en el inmueble: por depto, cuánto hay y quién lo tiene (administración o propietario).
+  const TAG_DEP = {deposito:['dep','DEPÓSITO RECIBIDO'], devolucion:['dev','DEVOLUCIÓN AL INQUILINO'], entrega:['ent','ENTREGADO AL PROPIETARIO']};
+  const custCell = x => x.admin > 0.004 && x.prop > 0.004
+      ? `Administración ${fM2(x.admin)}<span class="sub">Propietario ${fM2(x.prop)}</span>`
+    : x.prop > 0.004  ? '<span class="tag ent">EN PODER DEL PROPIETARIO</span>'
+    : x.admin > 0.004 ? '<span class="tag dep">EN RESGUARDO DE LA ADMINISTRACIÓN</span>'
+    : '<span class="sub">Devuelto al inquilino</span>';
+  const depositoHTML = (d.depDeptos.length || d.depMov.length) ? `
+    <h2>Depósito en garantía (no forma parte del neto)</h2>
     <table class="mz-dep">
-      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha</th><th>Movimiento</th><th class="num">Monto</th></tr></thead>
-      <tbody>${d.depMov.length ? d.depMov.map(m => `
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Recibido el</th><th>Custodia al cierre del mes</th><th class="num">Depósito vigente</th></tr></thead>
+      <tbody>${d.depDeptos.map(x => `
+        <tr>
+          <td><b>${esc(x.u)}</b></td>
+          <td>${inqCell(x)}</td>
+          <td>${x.fechaRec ? fF(x.fechaRec) : '—'}</td>
+          <td>${custCell(x)}</td>
+          <td class="num">${fM2(x.saldo)}</td>
+        </tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="4" class="num">TOTAL EN GARANTÍA</td><td class="num">${fM2(d.depResguardo)}</td></tr></tfoot>
+    </table>
+    <table class="mz-liq" style="margin-top:8px;">
+      <tr><td>En resguardo de la administración</td><td class="num">${fM2(d.depAdmin)}</td></tr>
+      <tr><td>Entregado al propietario</td><td class="num">${fM2(d.depProp)}</td></tr>
+      <tr class="total"><td>Total de depósitos vigentes</td><td class="num">${fM2(d.depResguardo)}</td></tr>
+    </table>
+    ${d.depMov.length ? `
+    <table class="mz-dep" style="margin-top:10px;">
+      <thead><tr><th>Departamento</th><th>Inquilino</th><th>Fecha</th><th>Movimiento del mes</th><th class="num">Monto</th></tr></thead>
+      <tbody>${d.depMov.map(m => `
         <tr>
           <td><b>${esc(m.u)}</b></td>
           <td>${inqCell(m)}</td>
           <td>${fF(m.fecha)}</td>
-          <td><span class="tag ${m.concepto==='deposito'?'dep':'dev'}">${m.concepto==='deposito'?'DEPÓSITO RECIBIDO':'DEVOLUCIÓN'}</span>${m.concepto==='devolucion'&&m.nota?`<span class="sub">${esc(m.nota)}</span>`:''}</td>
+          <td><span class="tag ${TAG_DEP[m.concepto][0]}">${TAG_DEP[m.concepto][1]}</span>${m.concepto!=='deposito'&&m.nota?`<span class="sub">${esc(m.nota)}</span>`:''}</td>
           <td class="num">${m.concepto==='devolucion'?'−':''}${fM2(m.monto)}</td>
-        </tr>`).join('') : `<tr><td colspan="5" class="vacio">Sin movimientos de depósito en este periodo</td></tr>`}</tbody>
-    </table>
-    <table class="mz-liq" style="margin-top:8px;">
-      <tr><td>Depósitos recibidos en el mes</td><td class="num">${fM2(d.depRecibidos)}</td></tr>
-      <tr><td>Devoluciones en el mes</td><td class="num">${d.depDevueltos>0.004?'−':''}${fM2(d.depDevueltos)}</td></tr>
-      <tr class="total"><td>Saldo en resguardo al cierre del mes</td><td class="num${d.depResguardo < -0.004 ? ' rojo' : ''}">${fS(d.depResguardo)}</td></tr>
-    </table>
-    <div class="mz-liq-nota">El depósito en garantía se conserva en resguardo y se devuelve al término del contrato; no se suma al cobrado, no causa comisión y no forma parte del neto a entregar.</div>` : '';
+        </tr>`).join('')}</tbody>
+    </table>` : ''}
+    <div class="mz-liq-nota">El depósito en garantía permanece en resguardo de Moctezuma Administradora Inteligente hasta que se entregue al propietario o se devuelva al inquilino al término del contrato. No se suma al cobrado, no causa comisión y no forma parte del neto a entregar.</div>` : '';
 
   const mtto = MTTO_INCLUIDO[d.ub];
   const aviso = mtto && d.mes < mtto.cobrarDesde

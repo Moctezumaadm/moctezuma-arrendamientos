@@ -3,7 +3,7 @@
 // Google Apps Script — v34p (Web App + Permisos + Auditoría + Pagos + Gastos)
 // ═══════════════════════════════════════════════════════
 
-const SCRIPT_VERSION = 'v34y';
+const SCRIPT_VERSION = 'v34z';
 
 const SHEET_NAME   = 'Contratos';
 const ACCESO_SHEET = 'ACCESO';
@@ -256,7 +256,7 @@ function getPagos() {
     }
     if (obj.cid) obj.cid = Number(obj.cid);
     if (obj.monto) obj.monto = Number(obj.monto);
-    // v34y: concepto 'renta' | 'deposito' | 'devolucion'. Vacío (filas anteriores) = renta.
+    // v34y: concepto 'renta' | 'deposito' | 'devolucion' (+ 'entrega' v34z). Vacío (filas anteriores) = renta.
     obj.concepto = String(obj.concepto || '').trim() || 'renta';
     result.push(obj);
   }
@@ -274,7 +274,8 @@ function savePago(pago) {
   }
   // v34y: concepto del movimiento; si no viene (o no es válido), es renta.
   const concepto = String(pago.concepto || '').trim().toLowerCase();
-  pago.concepto = (concepto === 'deposito' || concepto === 'devolucion') ? concepto : 'renta';
+  // v34z: 'entrega' = depósito entregado al propietario (sale del resguardo de la administración).
+  pago.concepto = ['deposito', 'devolucion', 'entrega'].indexOf(concepto) >= 0 ? concepto : 'renta';
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const row = headers.map(h => pago[h] !== undefined ? pago[h] : '');
   sheet.appendRow(row);
